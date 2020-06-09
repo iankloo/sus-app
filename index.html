@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+
+
+<script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+
+
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
+
+  <link rel="stylesheet" href="//cdn.datatables.net/1.10.21/css/jquery.dataTables.min.css">
+
+<script src="//cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>
+
+
+
+<!-- Load d3.js -->
+<script src="https://d3js.org/d3.v4.js"></script>
+
+
+  <script src="https://cdn.rawgit.com/eligrey/canvas-toBlob.js/f1a01896135ab378aa5c0118eadd81da55e698d8/canvas-toBlob.js"></script>
+	 <script src="https://cdn.rawgit.com/eligrey/FileSaver.js/e9d941381475b5df8b7d7691013401e171014e89/FileSaver.min.js"></script>
+
+
+<style>
+svg{
+	max-height: 80%;
+}
+
+.main{
+	margin-top: 20px;
+	margin-left: 10%;
+	margin-right: 10%;
+}
+
+#overlay {
+      background: #ffffff;
+      color: #666666;
+      position: fixed;
+      height: 100%;
+      width: 100%;
+      z-index: 5000;
+      top: 0;
+      left: 0;
+      float: left;
+      text-align: center;
+      padding-top: 25%;
+      opacity: .80;
+    }
+.spinner {
+    margin: 0 auto;
+    height: 64px;
+    width: 64px;
+    animation: rotate 0.8s infinite linear;
+    border: 5px solid firebrick;
+    border-right-color: transparent;
+    border-radius: 50%;
+}
+@keyframes rotate {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+.nav-item{
+	color: #495057 !important;
+}
+
+.tooltip-inner {
+    text-align: left;
+    background-color: #5a6268;
+}
+
+
+
+
+</style>
+
+
+ <nav class="navbar navbar-expand-sm bg-dark navbar-dark">
+    <a class="navbar-brand" href="">Systems Usability Analyzer</a>
+  </nav>
+
+
+<div>
+
+	<div class = 'main'>
+
+
+
+	<div class = 'dialogue'></div>
+
+	
+
+	<div class = 'explainer'></div>
+
+<!--
+	<div class="card-deck">
+  <div class="card bg-primary">
+    <div class="card-body text-center">
+      <p class="card-text" style = 'color: white'>20 Responses</p>
+    </div>
+  </div>
+  <div class="card bg-primary">
+    <div class="card-body text-center">
+      <p class="card-text" style = 'color: white'>Mean: Acceptable</p>
+    </div>
+  </div>
+  <div class="card bg-primary">
+    <div class="card-body text-center">
+      <p class="card-text" style = 'color: white'>Mean: B</p>
+    </div>
+  </div>
+  <div class="card bg-primary">
+    <div class="card-body text-center">
+      <p class="card-text" style = 'color: white'>Mean: Good</p>
+    </div>
+  </div>
+</div>
+-->
+
+	  
+
+
+
+	</div>
+
+
+</div>
+
+ <script src="www/js/saveSvgAsPng.js"></script>
+
+
+<script>
+
+init()
+
+
+function init() {
+	$('.dialogue').html(`
+        <h2>Welcome to the SUS Analyzer</h2>
+		<p>This app is built to process Systems Usability Surveys and provide useful visualizations to help users understand and communicate the results.</p>
+		<p>Follow the steps below to load your data.</p>
+
+	<h3>Step 1: Select your SUS data</h3>
+		<p>The app expects SUS data in the same format as the <a href = 'sus_data.csv' download>sample CSV</a>.  The easiest way to load your data is to copy and paste your results into the sample.</p>
+	<label class="btn btn-secondary btn-sm">
+		Upload File<input type="file" onchange="loadFile()" hidden/>
+	</label>
+    `)
+}
+
+function step2() {
+	$('.dialogue').html(`
+	<h3>Step 2: Review your SUS data</h3>
+		<p>Confirm your data was loaded successfully (don't worry that the column names are removed).  Each row is a single respondent.  If you need to adjust your data, make the adjustments and reload the csv.</p>
+	<button id = 'step_done' class = 'btn btn-secondary btn-sm'>My data was loaded correctly</button>
+	<br><br>
+	<div style="width:100%">
+		<table id="my_table" class="table table-striped table-bordered" ></table>
+	</div>
+	<div id="overlay" style="display:none;">
+    	<div class="spinner"></div>
+    </div> 
+    `)
+    $("#step_done").click(function(){
+    	$('#overlay').fadeIn()
+		step3()
+	})
+}
+
+
+function step3(){
+	var data = d3.csvParse(reader.result)
+	hit_api(data)
+}
+
+
+function hit_api(my_data){
+	//hit API with user data
+	var url = document.location.protocol + "//" + document.location.hostname + ":8080/sus";
+	$.ajax({
+		url: url,
+		data: JSON.stringify(my_data),
+		type: "POST",
+		dataType: "json",
+		success: function (dat){
+			//$('.dialogue').html('')
+			$('#overlay').fadeOut()
+			$('.dialogue').html(`
+
+
+			<nav>
+			  <div class="nav nav-tabs" id="nav-tab" role="tablist">
+			    <a class="nav-item nav-link active" id="nav-bayes-tab" data-toggle="tab" href="#nav-bayes" role="tab" aria-controls="nav-bayes" aria-selected="false">Bayes</a>
+			    <a class="nav-item nav-link" id="nav-bootstrap-tab" data-toggle="tab" href="#nav-bootstrap" role="tab" aria-controls="nav-bootstrap" aria-selected="true">Bootstrap</a>
+			    <a class="nav-item nav-link" id="nav-data-tab" data-toggle="tab" href="#nav-data" role="tab" aria-controls="nav-data" aria-selected="false">Raw Data</a>
+			  </div>
+			</nav>
+
+			<br>
+			<div class = "container">
+				<div class = "row">
+					<div class = "col-sm-9">
+						<div id = "plot_stuff">
+							<div id="my_dataviz" style = 'max-width: 100%'></div>
+						  	<button class = 'float-right btn btn-secondary btn-sm' id = 'export'>Save as PNG</button>
+					  	</div>
+					</div>
+					<div class = "col-sm-3">
+						<div class="tab-content" id="nav-tabContent">
+							<div class="tab-pane fade show active" id="nav-bayes" role="tabpanel" aria-labelledby="nav-bayes-tab">
+						  		<h4>Using this Plot</h4>
+						  		<p>This plot shows the mean and confidence intervals for the true mean SUS score from your uploaded data.  The min and max bars show the range of the single-user average SUS scores, and the circles in the bottom bar show where all of the single-user averages fall.</p>
+						  		<p>The mean and confidence interval estimates were found using a Bayesian method that is effective regardless of sample size.  More information on the methodology is presented in this paper.</p>
+						  	</div>
+						  	<div class="tab-pane fade" id="nav-bootstrap" role="tabpanel" aria-labelledby="nav-bootstrap-tab">
+						  		<h4>Using this Plot</h4>
+						  		<p>This plot shows the mean and confidence intervals for the true mean SUS score from your uploaded data.  The min and max bars show the range of the single-user average SUS scores, and the circles in the bottom bar show where all of the single-user averages fall.</p>
+						  		<p>The mean and confidence interval estimates were found using a bias-corrected accelerated bootstrap (BCa) method that is most effective with sample sizes greater than X.  More information on the methodology is presented in this paper.</p>
+						  	</div>
+							<div class="tab-pane fade" id="nav-data" role="tabpanel" aria-labelledby="nav-data-tab">
+						  	</div	
+						</div>	
+					</div>
+				</div>
+			</div>
+
+			
+			<br>
+			<div id = 'table_container' style="width:100%">
+				<table id="my_table" class="table table-striped table-bordered" ></table>
+			</div>
+
+
+				
+			`)
+			$('.explainer').html(`
+
+			`)
+			$('#table_container').hide()
+			makePlot(dat[0])
+			setTimeout(function(){ $('[data-toggle="tooltip"]').tooltip()}, 200)
+			$("#export").click(function(){
+		    	saveSvgAsPng(d3.select("svg").node(), "diagram.png");
+		    }); 
+
+		    $("#nav-bootstrap-tab").click(function(){
+		    	$('#table_container').hide()
+		    	$("#plot_stuff").show()
+		    	makePlot(dat[1])
+
+		    	setTimeout(function(){ $('[data-toggle="tooltip"]').tooltip()}, 200)
+		    }); 
+		    $("#nav-bayes-tab").click(function(){
+		    	$('#table_container').hide()
+		    	$("#plot_stuff").show()
+		    	makePlot(dat[0])
+		    	
+		    	setTimeout(function(){ $('[data-toggle="tooltip"]').tooltip()}, 200)
+		    }); 
+		    $("#nav-data-tab").click(function(){
+		    	setTimeout(function(){ $("#plot_stuff").hide().promise().then($('#table_container').show())}, 200)
+		    	
+		    });
+
+			//rerender data table
+			$('#my_table').DataTable( {
+		        data: out,
+		        columns: [
+		            { title: "Q1" },
+		            { title: "Q2" },
+		            { title: "Q3" },
+		            { title: "Q4" },
+		            { title: "Q5" },
+		            { title: "Q6" },
+		            { title: "Q7" },
+		            { title: "Q8" },
+		            { title: "Q9" },
+		            { title: "Q10" }
+		        ],
+		        "dom": ''
+		    } );
+
+
+
+		}
+	})
+}
+
+$(window).resize(function(){
+	//$('svg').height('80vh')
+	$('svg').css('max-height', '75vh')
+});
+
+// var chart = $("#my_dataviz"),
+//     aspect = chart.width() / chart.height(),
+//     container = chart.parent();
+// $(window).on("resize", function() {
+//     var targetWidth = container.width();
+//     chart.attr("width", targetWidth);
+//     chart.attr("height", Math.round(targetWidth / aspect));
+//     console.log(targetWidth)
+// }).trigger("resize");
+
+
+//--read in user file
+var reader = new FileReader();
+
+function loadFile() {      
+  var file = document.querySelector('input[type=file]').files[0];      
+  reader.addEventListener("load", parseFile, false);
+  if (file) {
+    reader.readAsText(file);
+  } 
+}
+
+//--pass user file to R API
+function parseFile(){
+	step2()
+
+	var data = d3.csvParse(reader.result)
+	var my_keys = Object.keys(data[0])
+	out = []
+	for(i = 0; i < data.length; i++){
+		out[i] = my_keys.map(function(key){return data[i][key]})
+	}
+
+	//console.log(JSON.parse(reader.result))
+	$('#my_table').DataTable( {
+        data: out,
+        columns: [
+            { title: "Q1" },
+            { title: "Q2" },
+            { title: "Q3" },
+            { title: "Q4" },
+            { title: "Q5" },
+            { title: "Q6" },
+            { title: "Q7" },
+            { title: "Q8" },
+            { title: "Q9" },
+            { title: "Q10" }
+        ],
+        "dom": ''
+    } );
+}
+
+
+//makePlot()
+function makePlot(data){
+
+d3.select("svg").remove();
+
+
+	// set the dimensions and margins of the graph
+var margin = {top: 10, right: 30, bottom: 50, left: 60}
+    width = 800 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom;
+
+var bar_height = 16
+
+// append the svg object to the body of the page
+var svg = d3.select("#my_dataviz")
+  .append("svg")
+    // .attr("width", width + margin.left + margin.right)
+    // .attr("height", height + margin.top + margin.bottom)
+    .attr("viewBox", `0 0 800 500`)
+  .append("g")
+    .attr("transform",
+          "translate(" + margin.left + "," + margin.top + ")");
+
+
+//d3.json('example.json', function(data){
+
+
+	var int_high = data.ci[1].toFixed(2)
+	var int_low = data.ci[0].toFixed(2)
+	var mean = d3.mean(data.sus_scores).toFixed(2)
+	var int_min = d3.min(data.sus_scores).toFixed(2)
+	var int_max = d3.max(data.sus_scores).toFixed(2)
+
+
+var per_20 = .01
+var per_30 = .02
+var per_40 = .06
+var per_50 = .13
+var per_60 = .29
+var per_70 = .56
+var per_80 = .88
+var per_90 = .998
+
+	// X axis: scale and draw:
+var x = d3.scaleLinear()
+  .domain([0, 100])     // can use this instead of 1000 to have the max of data: d3.max(data, function(d) { return +d.price })
+  .range([0, width]);
+svg.append("g")
+  .attr("transform", "translate(0," + height + ")")
+  .call(d3.axisBottom(x));
+
+
+  //--circles for frequencies
+function counter(arr) {
+    var a = [], b = [], prev;
+
+    arr.sort();
+    for ( var i = 0; i < arr.length; i++ ) {
+        if ( arr[i] !== prev ) {
+            a.push(arr[i]);
+            b.push(1);
+        } else {
+            b[b.length-1]++;
+        }
+        prev = arr[i];
+    }
+
+    return [a, b];
+}
+var counts = counter(data.sus_scores.sort())
+
+var freq = counts[0].map(function (x, i) { 
+  return [x, counts[1][i]] 
+});
+
+
+
+
+var rad_scale = d3.scaleLinear()
+  .domain([d3.min(freq[1]), d3.max(freq[1])]) // unit: km
+  .range([2, 75])
+
+var circles = svg.selectAll('circle')
+.data(freq)
+.enter()
+.append('circle')
+.attr('cx', function(d){
+	return x(d[0])
+})
+.attr('cy', height - bar_height/2)
+.transition()
+.duration(1000)
+.attr('r', function(d){
+	return(rad_scale(d[1]))
+})
+.style('fill', 'grey')
+.attr('data-toggle', 'tooltip')
+.attr('data-placement', 'top')
+.attr('title', function(d){
+	return "Responses: " + d[1]
+})
+.attr('data-original-title', function(d){
+	return "Responses: " + d[1]
+})
+
+// var circles = svg.selectAll('circle')
+// .data(freq)
+// .enter()
+// .append('g')
+// .append('text')
+// .attr('x', function(d){
+// 	return x(d[0])
+// })
+// .attr('y', height - bar_height/2)
+// .text(function(d){
+// 	return(d[1])
+// })
+// .style('font-size', '.6em')
+// .attr("text-anchor", "middle")
+// .attr('alignment-baseline', 'central')
+
+
+
+  // set the parameters for the histogram
+  var histogram = d3.histogram()
+      .value(function(d) { return d; })   // I need to give the vector of value
+      .domain(x.domain())  // then the domain of the graphic
+      .thresholds(x.ticks(70)); // then the numbers of bins
+
+  // And apply this function to data to get the bins
+  var bins = histogram(data.replicates);
+
+  // Y axis: scale and draw:
+  var y = d3.scaleLinear()
+      .range([height, bar_height*2 + 80]);
+      y.domain([0, d3.max(bins, function(d) { return d.length; })]);   // d3.hist has to be called before the Y axis obviously
+  svg.append("g")
+  	  .attr('transform', 'translate(0,' + -bar_height*5 + ")")
+      .call(d3.axisLeft(y));
+
+
+  // append the bar rectangles to the svg element
+  svg.selectAll("rect")
+      .data(bins)
+      .enter()
+      .append("rect")
+        .attr("x", function(d){
+        	return(x(d.x0))
+        })
+        //.attr("transform", function(d) {return "translate(" + x(d.x0) + "," + (y(d.length) - bar_height*5) + ")"; })
+        .attr("width", function(d) { 
+        	if((x(d.x1) - x(d.x0) - 1) > 0){
+        		return x(d.x1) - x(d.x0) - 1
+        	} else{
+        		return 0
+        	}
+        })
+        .attr("height", 0)
+        .attr('y', height - bar_height*5)
+        .style("fill", "#878787")
+    	.style('fill-opacity', .75)
+        .transition()
+        .duration(1000)
+        // .delay(function(d, i){
+        // 	return i * 0
+        // })
+        .attr('y', function(d){
+        	return y(d.length) - bar_height*5
+        })
+        .attr("height", function(d) { return height - y(d.length); })
+        
+     
+
+
+
+
+  // //--created the color bar for un-, marginal, and acceptable
+var sub_axis = svg.append('g')
+.attr("transform", "translate(0," + height + ")")
+
+// //unacceptable
+svg.append('rect')
+.attr('x', .25)
+.attr('y', height - (bar_height * 5))
+.attr('width', width/2)
+.attr('height', bar_height)
+.attr('fill', '#d73027')
+.attr('stroke', 'black')
+.attr('fill-opacity', .6)
+.attr('stroke-width', .5)
+
+svg.append('text')
+.attr('x', (width/4))
+.attr('y', height - ((bar_height * 5) - bar_height/2))
+.text('Unacceptable')
+.style('font-size', '.8em')
+.attr("text-anchor", "middle")
+.attr('alignment-baseline', 'middle')
+
+
+//marginal
+svg.append('rect')
+.attr('x', .25 + (width/2))
+.attr('y', height - (bar_height * 5))
+.attr('width', width/5)
+.attr('height', bar_height)
+.attr('fill', '#fee08b')
+.attr('stroke', 'black')
+.attr('fill-opacity', .6)
+.attr('stroke-width', .5)
+
+
+svg.append('text')
+.attr('x', (width/2) + (width/5)/2)
+.attr('y', height - ((bar_height * 5) - bar_height/2))
+.text('Marginal')
+.style('font-size', '.8em')
+.attr("text-anchor", "middle")
+.attr('alignment-baseline', 'middle')
+
+//acceptable
+svg.append('rect')
+.attr('x', .25 + (width/2) + (width/5))
+.attr('y', height - (bar_height * 5))
+.attr('width', width/(10/3))
+.attr('height', bar_height)
+.attr('fill', '#66bd63')
+.attr('stroke', 'black')
+.attr('fill-opacity', .6)
+.attr('stroke-width', .5)
+
+
+svg.append('text')
+.attr('x', (width/2 + width/5) + width/(10/3)/2)
+.attr('y', height - ((bar_height * 5) - bar_height/2))
+.text('Acceptable')
+.style('font-size', '.8em')
+.attr("text-anchor", "middle")
+.attr('alignment-baseline', 'middle')
+
+svg.append('svg:image')
+.attr('x', width + 5)
+.attr('y', height - ((bar_height * 5) - bar_height/2) - 5)
+.attr('xlink:href', 'www/img/question-circle.svg')
+.attr('alignment-baseline', 'text-before-edge')
+.attr('width', 12.5)
+.attr('height', 12.5)
+.attr('data-toggle', 'tooltip')
+.attr('data-placement', 'right')
+.attr('title', 'Acceptability Ranges From: Percentiles From: Bangor, A., Kortum, P. T., & Miller, J. T. (2008). An empirical evaluation of the system usability scale. Intl. Journal of Human–Computer Interaction, 24(6), 574-594.')
+
+//--letter grades
+svg.append('rect')
+.attr('x', .25)
+.attr('y', height - (bar_height*4))
+.attr('width', width/(100/52.5))
+.attr('height', bar_height)
+.attr('fill', '#d73027')
+.attr('stroke', 'black')
+.attr('fill-opacity', .6)
+.attr('stroke-width', .5)
+
+
+svg.append('text')
+.attr('x', width/(100/52.5)/2)
+.attr('y', height - ((bar_height*4) - bar_height/2))
+.text('F')
+.style('font-size', '.8em')
+.attr("text-anchor", "middle")
+.attr('alignment-baseline', 'middle')
+
+svg.append('rect')
+.attr('x', .25 + (width/(100/52.5)))
+.attr('y', height - (bar_height*4))
+.attr('width', width/(10))
+.attr('height', bar_height)
+.attr('fill', '#f46d43')
+.attr('stroke', 'black')
+.attr('fill-opacity', .6)
+.attr('stroke-width', .5)
+
+
+svg.append('text')
+.attr('x', width/(100/52.5) + (width/(10)/2))
+.attr('y', height - ((bar_height*4) - bar_height/2))
+.text('D')
+.style('font-size', '.8em')
+.attr("text-anchor", "middle")
+.attr('alignment-baseline', 'middle')
+
+svg.append('rect')
+.attr('x', .25 + (width/(100/52.5)) + width/(10))
+.attr('y', height - (bar_height*4))
+.attr('width', width/(10))
+.attr('height', bar_height)
+.attr('fill', '#fee08b')
+.attr('stroke', 'black')
+.attr('fill-opacity', .6)
+.attr('stroke-width', .5)
+
+
+svg.append('text')
+.attr('x', (width/(100/52.5) + width/(10)) + width/(10)/2)
+.attr('y', height - ((bar_height*4) - bar_height/2))
+.text('C')
+.style('font-size', '.8em')
+.attr("text-anchor", "middle")
+.attr('alignment-baseline', 'middle')
+
+svg.append('rect')
+.attr('x', .25 + (width/(100/52.5)) + width/(10) + width/10)
+.attr('y', height - (bar_height*4))
+.attr('width', width/(15))
+.attr('height', bar_height)
+.attr('fill', '#a6d96a')
+.attr('stroke', 'black')
+.attr('fill-opacity', .6)
+.attr('stroke-width', .5)
+
+
+svg.append('text')
+.attr('x', (width/(100/52.5) + width/(10) + width/(10)) + width/(15)/2)
+.attr('y', height - ((bar_height*4) - bar_height/2))
+.text('B')
+.style('font-size', '.8em')
+.attr("text-anchor", "middle")
+.attr('alignment-baseline', 'middle')
+
+svg.append('rect')
+.attr('x', .25 + (width/(100/52.5)) + width/(10) + width/10 + width/15)
+.attr('y', height - (bar_height*4))
+.attr('width', width/(4.79))
+.attr('height', bar_height)
+.attr('fill', '#66bd63')
+.attr('stroke', 'black')
+.attr('fill-opacity', .6)
+.attr('stroke-width', .5)
+
+
+svg.append('text')
+.attr('x', (width/(100/52.5) + width/(10) + width/(10) + width/(15)) + width/(4.79)/2)
+.attr('y', height - ((bar_height*4) - bar_height/2))
+.text('A')
+.style('font-size', '.8em')
+.attr("text-anchor", "middle")
+.attr('alignment-baseline', 'middle')
+
+svg.append('svg:image')
+.attr('x', width + 5)
+.attr('y', height - ((bar_height*4) - bar_height/2) - 5)
+.attr('xlink:href', 'www/img/question-circle.svg')
+.attr('alignment-baseline', 'text-before-edge')
+.attr('width', 12.5)
+.attr('height', 12.5)
+.attr('data-toggle', 'tooltip')
+.attr('data-placement', 'right')
+.attr('title', 'Letter Grade Ratings From: Percentiles From: Sauro, J., & Lewis, J. R. (2016). Quantifying the user experience: Practical statistics for user research. Morgan Kaufmann.')
+
+
+//--awful to excellent bar
+svg.append('rect')
+.attr('x', .25)
+.attr('y', height - (bar_height*3))
+.attr('width', width)
+.attr('height', bar_height)
+.attr('fill', 'none')
+.attr('stroke', 'black')
+.attr('fill-opacity', .6)
+.attr('stroke-width', .5)
+
+svg.append('rect')
+.attr('x', .25 + width/(100/15))
+.attr('y', height - (bar_height*3))
+.attr('width', width/10)
+.attr('height', bar_height)
+.attr('fill', '#d73027')
+.attr('fill-opacity', .6)
+.attr('stroke-width', 0)
+
+svg.append('text')
+.attr('x', width/(100/15) + width/10/2)
+.attr('y', height - ((bar_height*3) - bar_height/2))
+.text('Awful')
+.style('font-size', '.8em')
+.attr("text-anchor", "middle")
+.attr('alignment-baseline', 'middle')
+
+svg.append('rect')
+.attr('x', .25 + width/(100/32.5))
+.attr('y', height - (bar_height*3))
+.attr('width', width/14)
+.attr('height', bar_height)
+.attr('fill', '#f46d43')
+.attr('fill-opacity', .6)
+.attr('stroke-width', 0)
+
+svg.append('text')
+.attr('x', width/(100/32.5) + width/14/2)
+.attr('y', height - ((bar_height*3) - bar_height/2))
+.text('Poor')
+.style('font-size', '.8em')
+.attr("text-anchor", "middle")
+.attr('alignment-baseline', 'middle')
+
+svg.append('rect')
+.attr('x', .25 + width/(100/50))
+.attr('y', height - (bar_height*3))
+.attr('width', width/30)
+.attr('height', bar_height)
+.attr('fill', '#fee08b')
+.attr('fill-opacity', .6)
+.attr('stroke-width', 0)
+
+svg.append('text')
+.attr('x', width/(100/50) + width/30/2)
+.attr('y', height - ((bar_height*3) - bar_height/2))
+.text('OK')
+.style('font-size', '.8em')
+.attr("text-anchor", "middle")
+.attr('alignment-baseline', 'middle')
+
+
+svg.append('rect')
+.attr('x', .25 + width/(100/70))
+.attr('y', height - (bar_height*3))
+.attr('width', width/30)
+.attr('height', bar_height)
+.attr('fill', '#a6d96a')
+.attr('fill-opacity', .6)
+.attr('stroke-width', 0)
+
+svg.append('text')
+.attr('x', width/(100/70) + width/30/2)
+.attr('y', height - ((bar_height*3) - bar_height/2))
+.text('Good')
+.style('font-size', '.8em')
+.attr("text-anchor", "middle")
+.attr('alignment-baseline', 'middle')
+
+
+svg.append('rect')
+.attr('x', .25 + width/(100/85))
+.attr('y', height - (bar_height*3))
+.attr('width', width/30)
+.attr('height', bar_height)
+.attr('fill', '#66bd63')
+.attr('fill-opacity', .6)
+.attr('stroke-width', 0)
+
+svg.append('text')
+.attr('x', width/(100/85) + width/30/2)
+.attr('y', height - ((bar_height*3) - bar_height/2))
+.text('Excellent')
+.style('font-size', '.8em')
+.attr("text-anchor", "middle")
+.attr('alignment-baseline', 'middle')
+
+svg.append('svg:image')
+.attr('x', width + 5)
+.attr('y', height - ((bar_height*3) - bar_height/2) - 5)
+.attr('xlink:href', 'www/img/question-circle.svg')
+.attr('alignment-baseline', 'text-before-edge')
+.attr('width', 12.5)
+.attr('height', 12.5)
+.attr('data-toggle', 'tooltip')
+.attr('data-placement', 'right')
+.attr('title', 'Adjective Ratings From: Bangor, A., Kortum, P., & Miller, J. (2009). Determining what individual SUS scores mean: Adding an adjective rating scale. Journal of usability studies, 4(3), 114-123.')
+
+//--add percentile bar
+svg.append('rect')
+.attr('x', .25)
+.attr('y', height - (bar_height*2))
+.attr('width', width)
+.attr('height', bar_height)
+.attr('fill', 'none')
+.attr('stroke', 'black')
+.attr('fill-opacity', .6)
+.attr('stroke-width', .5)
+
+svg.append('text')
+.attr('x', 10)
+.attr('y', height - ((bar_height*2) - bar_height/2))
+.text('Score Percentiles')
+.style('font-size', '.6em')
+.attr("text-anchor", "left")
+.attr('alignment-baseline', 'middle')
+
+svg.append('text')
+.attr('x', width/(100/20))
+.attr('y', height - ((bar_height*2) - bar_height/2))
+.text(per_20)
+.style('font-size', '.6em')
+.attr("text-anchor", "middle")
+.attr('alignment-baseline', 'central')
+
+svg.append('text')
+.attr('x', width/(100/30))
+.attr('y', height - ((bar_height*2) - bar_height/2))
+.text(per_30)
+.style('font-size', '.6em')
+.attr("text-anchor", "middle")
+.attr('alignment-baseline', 'central')
+
+svg.append('text')
+.attr('x', width/(100/40))
+.attr('y', height - ((bar_height*2) - bar_height/2))
+.text(per_40)
+.style('font-size', '.6em')
+.attr("text-anchor", "middle")
+.attr('alignment-baseline', 'central')
+
+svg.append('text')
+.attr('x', width/(100/50))
+.attr('y', height - ((bar_height*2) - bar_height/2))
+.text(per_50)
+.style('font-size', '.6em')
+.attr("text-anchor", "middle")
+.attr('alignment-baseline', 'central')
+
+svg.append('text')
+.attr('x', width/(100/60))
+.attr('y', height - ((bar_height*2) - bar_height/2))
+.text(per_60)
+.style('font-size', '.6em')
+.attr("text-anchor", "middle")
+.attr('alignment-baseline', 'central')
+
+svg.append('text')
+.attr('x', width/(100/70))
+.attr('y', height - ((bar_height*2) - bar_height/2))
+.text(per_70)
+.style('font-size', '.6em')
+.attr("text-anchor", "middle")
+.attr('alignment-baseline', 'central')
+
+svg.append('text')
+.attr('x', width/(100/80))
+.attr('y', height - ((bar_height*2) - bar_height/2))
+.text(per_80)
+.style('font-size', '.6em')
+.attr("text-anchor", "middle")
+.attr('alignment-baseline', 'central')
+
+svg.append('text')
+.attr('x', width/(100/90))
+.attr('y', height - ((bar_height*2) - bar_height/2))
+.text(per_90)
+.style('font-size', '.6em')
+.attr("text-anchor", "middle")
+.attr('alignment-baseline', 'central')
+
+svg.append('svg:image')
+.attr('x', width + 5)
+.attr('y', height - ((bar_height*2) - bar_height/2) - 5)
+.attr('xlink:href', 'www/img/question-circle.svg')
+.attr('alignment-baseline', 'text-before-edge')
+.attr('width', 12.5)
+.attr('height', 12.5)
+.attr('data-toggle', 'tooltip')
+.attr('data-placement', 'right')
+.attr('title', 'Percentiles From: Sauro, J., & Lewis, J. R. (2016). Quantifying the user experience: Practical statistics for user research. Morgan Kaufmann.')
+
+
+//--add frequency bar
+svg.append('rect')
+.attr('x', .25)
+.attr('y', height - (bar_height))
+.attr('width', width)
+.attr('height', bar_height)
+.attr('fill', 'none')
+.attr('stroke', 'black')
+.attr('fill-opacity', .6)
+.attr('stroke-width', .5)
+
+svg.append('text')
+.attr('x', 10)
+.attr('y', height - ((bar_height) - bar_height/2))
+.text('SUS Score Frequencies')
+.style('font-size', '.6em')
+.attr("text-anchor", "left")
+.attr('alignment-baseline', 'middle')
+
+
+
+
+//--vertical lines based on thresholds
+svg.append("line")
+.attr('x1', x(mean))
+.attr('y1', height - bar_height*5)
+.transition()
+.duration(1000)
+.attr('y1', bar_height - 10)
+.attr('x2', x(mean))
+.attr('y2', height - bar_height*5)
+.attr('stroke-width', 2)
+.attr('stroke', '#4575b4')
+.attr('fill', 'none')
+.style("stroke-dasharray", ("3, 3"))
+
+svg.append('text')
+.attr('x', x(mean))
+.attr('y', height - bar_height*5)
+.text('Mean = ' + mean)
+.attr('fill','#4575b4')
+.style('font-size', '.7em')
+.attr('text-anchor', 'middle')
+.style('fill-opacity','0')
+.transition()
+.duration(1000)
+.attr('y', bar_height - 15)
+.style('fill-opacity','1')
+
+svg.append("line")
+.attr('x1', x(int_low))
+.attr('y1', height - bar_height*5)
+.transition()
+.duration(1000)
+.attr('y1', bar_height)
+.attr('x2', x(int_low))
+.attr('y2', height - bar_height*5)
+.attr('stroke-width', 2)
+.attr('stroke', '#d73027')
+.attr('fill', 'none')
+.style("stroke-dasharray", ("3, 3"))
+
+svg.append('text')
+.attr('x', x(int_low))
+.attr('y', height - bar_height*5)
+.text('95% CI LB = ' + int_low)
+.attr('fill','#d73027')
+.style('font-size', '.7em')
+.attr('text-anchor', 'end')
+.style('fill-opacity','0')
+.transition()
+.duration(1000)
+.attr('y', bar_height -3)
+.style('fill-opacity','1')
+
+
+svg.append("line")
+.attr('x1', x(int_high))
+.attr('y1', height - bar_height*5)
+.transition()
+.duration(1000)
+.attr('y1', bar_height)
+.attr('x2', x(int_high))
+.attr('y2', height - bar_height*5)
+.attr('stroke-width', 2)
+.attr('stroke', '#d73027')
+.attr('fill', 'none')
+.style("stroke-dasharray", ("3, 3"))
+
+svg.append('text')
+.attr('x', x(int_high))
+.attr('y', height - bar_height*5)
+.text('95% CI UB = ' + int_high)
+.attr('fill','#d73027')
+.style('font-size', '.7em')
+.attr('text-anchor', 'start')
+.style('fill-opacity','0')
+.transition()
+.duration(1000)
+.attr('y', bar_height -3)
+.style('fill-opacity','1')
+
+svg.append("line")
+.attr('x1', x(int_min))
+.attr('y1', height - bar_height*5)
+.transition()
+.duration(1000)
+.attr('y1', bar_height + 10)
+.attr('x2', x(int_min))
+.attr('y2', height - bar_height*5)
+.attr('stroke-width', 2)
+.attr('stroke', '#878787')
+.attr('fill', 'none')
+.style("stroke-dasharray", ("3, 3"))
+
+svg.append('text')
+.attr('x', x(int_min) - 5)
+.attr('y', height - bar_height*5)
+.attr('fill','#878787')
+.style('font-size', '.7em')
+.attr('text-anchor', 'end')
+.style('fill-opacity','0')
+.transition()
+.duration(1000)
+.attr('y', bar_height* 2)
+.text('Min = ' + int_min)
+.style('fill-opacity','1')
+
+
+svg.append("line")
+.attr('x1', x(int_max))
+.attr('y1', height - bar_height*5)
+.transition()
+.duration(1000)
+.attr('y1', bar_height + 10)
+.attr('x2', x(int_max))
+.attr('y2', height - bar_height*5)
+.attr('stroke-width', 2)
+.attr('stroke', '#878787')
+.attr('fill', 'none')
+.style("stroke-dasharray", ("3, 3"))
+
+svg.append('text')
+.attr('x', x(int_max) + 5)
+.attr('y', height - bar_height*5)
+.text('Max = ' + int_max)
+.attr('fill','#878787')
+.style('font-size', '.7em')
+.attr('text-anchor', 'start')
+.style('fill-opacity','0')
+.transition()
+.duration(1000)
+.attr('y', bar_height * 2)
+.style('fill-opacity','1')
+
+
+
+//axis labels
+svg.append("text")             
+      .attr("transform",
+            "translate(" + (width/2) + " ," + 
+                           (height + 40) + ")")
+      .style("text-anchor", "middle")
+      .text("SUS Score");
+
+  svg.append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 0 - margin.left)
+      .attr("x",0 - (height / 2))
+      .attr("dy", "1em")
+      .style("text-anchor", "middle")
+      .text("Frequency");   
+
+//});
+
+	//$('svg').height('80vh')
+	$('svg').css('max-height', '75vh')
+
+
+
+}
+
+
+
+
+
+</script>
