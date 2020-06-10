@@ -184,7 +184,7 @@ function step3(){
 
 function hit_api(my_data){
 	//hit API with user data
-	var url = document.location.protocol + "//" + document.location.hostname + ":8080/sus";
+	var url = "http://" + document.location.hostname + ":8080/sus";
 	$.ajax({
 		url: url,
 		data: JSON.stringify(my_data),
