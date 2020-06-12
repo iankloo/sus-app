@@ -160,7 +160,8 @@ function step2() {
 	$('.dialogue').html(`
 	<h3>Step 2: Review your SUS data</h3>
 		<p>Confirm your data was loaded successfully (don't worry that the column names are removed).  Each row is a single respondent.  If you need to adjust your data, make the adjustments and reload the csv.</p>
-	<button id = 'step_done' class = 'btn btn-secondary btn-sm'>My data was loaded correctly</button>
+	<button id = 'step_done' class = 'btn btn-primary btn-sm float-right'>My data was loaded correctly &#8594;</button>
+  <button id = 'go_back' class = 'btn btn-danger btn-sm float-left'>&#8592; My data was loaded incorrectly</button>
 	<br><br>
 	<div style="width:100%">
 		<table id="my_table" class="table table-striped table-bordered" ></table>
@@ -169,10 +170,14 @@ function step2() {
     	<div class="spinner"></div>
     </div> 
     `)
-    $("#step_done").click(function(){
-    	$('#overlay').fadeIn()
+  $("#step_done").click(function(){
+    $('#overlay').fadeIn()
 		step3()
 	})
+  $("#go_back").click(function(){
+    //$('#overlay').fadeIn()
+    init()
+  })
 }
 
 
@@ -199,7 +204,7 @@ function hit_api(my_data){
 			<nav>
 			  <div class="nav nav-tabs" id="nav-tab" role="tablist">
 			    <a class="nav-item nav-link active" id="nav-bayes-tab" data-toggle="tab" href="#nav-bayes" role="tab" aria-controls="nav-bayes" aria-selected="false">Bayes</a>
-			    <a class="nav-item nav-link" id="nav-bootstrap-tab" data-toggle="tab" href="#nav-bootstrap" role="tab" aria-controls="nav-bootstrap" aria-selected="true">Bootstrap</a>
+			    <a class="nav-item nav-link" id="nav-bootstrap-tab" data-toggle="tab" href="#nav-bootstrap" role="tab" aria-controls="nav-bootstrap" aria-selected="true">Bca</a>
 			    <a class="nav-item nav-link" id="nav-data-tab" data-toggle="tab" href="#nav-data" role="tab" aria-controls="nav-data" aria-selected="false">Raw Data</a>
 			  </div>
 			</nav>
@@ -217,13 +222,14 @@ function hit_api(my_data){
 						<div class="tab-content" id="nav-tabContent">
 							<div class="tab-pane fade show active" id="nav-bayes" role="tabpanel" aria-labelledby="nav-bayes-tab">
 						  		<h4>Using this Plot</h4>
-						  		<p>This plot shows the mean and confidence intervals for the true mean SUS score from your uploaded data.  The min and max bars show the range of the single-user average SUS scores, and the circles in the bottom bar show where all of the single-user averages fall.</p>
-						  		<p>The mean and confidence interval estimates were found using a Bayesian method that is effective regardless of sample size.  More information on the methodology is presented in this paper.</p>
+						  		<p>This plot shows the sample mean and 95% credibility interval for the population mean SUS score from your uploaded data. The min and max bars show the range of the single-user SUS scores, and the circles in the bottom bar display the frequencies of the single-user SUS scores, where larger circles denote a larger number of scores.</p>
+						  		<p>The estimates for the credibility interval’s bounds were found using a Bayesian method that is effective regardless of sample size. More information on the methodology is presented in Clark et al. (2020) at [doi link here].”</p>
+                  <p>Of note, the mean in the Bayes plot is identical to the mean in the Bootstrap plot, so I believe we are seeing the sample mean in the plot (vs. the mean of the posterior distribution).</p>
 						  	</div>
 						  	<div class="tab-pane fade" id="nav-bootstrap" role="tabpanel" aria-labelledby="nav-bootstrap-tab">
 						  		<h4>Using this Plot</h4>
-						  		<p>This plot shows the mean and confidence intervals for the true mean SUS score from your uploaded data.  The min and max bars show the range of the single-user average SUS scores, and the circles in the bottom bar show where all of the single-user averages fall.</p>
-						  		<p>The mean and confidence interval estimates were found using a bias-corrected accelerated bootstrap (BCa) method that is most effective with sample sizes greater than X.  More information on the methodology is presented in this paper.</p>
+						  		<p>This plot shows the sample mean and 95% confidence interval for the population mean SUS score from your uploaded data. The min and max bars show the range of the single-user SUS scores, and the circles in the bottom bar display the frequencies of the single-user SUS scores, where larger circles denote a larger number of scores.</p>
+						  		<p>The estimates for the confidence interval’s bounds were found using the bias-corrected accelerated bootstrap (BCa) method that is most effective with sample sizes greater than X. More information on the methodology is presented in Clark et al. (2020) at [add doi link here].</p>
 						  	</div>
 							<div class="tab-pane fade" id="nav-data" role="tabpanel" aria-labelledby="nav-data-tab">
 						  	</div	
@@ -248,13 +254,16 @@ function hit_api(my_data){
 			makePlot(dat[0])
 			setTimeout(function(){ $('[data-toggle="tooltip"]').tooltip()}, 200)
 			$("#export").click(function(){
-		    	saveSvgAsPng(d3.select("svg").node(), "diagram.png");
-		    }); 
+		    	saveSvgAsPng(d3.select("svg").node(), "bayesian_ci_sus.png");
+		  }); 
 
 		    $("#nav-bootstrap-tab").click(function(){
 		    	$('#table_container').hide()
 		    	$("#plot_stuff").show()
 		    	makePlot(dat[1])
+          $("#export").click(function(){
+              saveSvgAsPng(d3.select("svg").node(), "bca_ci_sus.png");
+          }); 
 
 		    	setTimeout(function(){ $('[data-toggle="tooltip"]').tooltip()}, 200)
 		    }); 
@@ -262,11 +271,19 @@ function hit_api(my_data){
 		    	$('#table_container').hide()
 		    	$("#plot_stuff").show()
 		    	makePlot(dat[0])
+          $("#export").click(function(){
+              saveSvgAsPng(d3.select("svg").node(), "bayesian_ci_sus.png");
+          }); 
 		    	
 		    	setTimeout(function(){ $('[data-toggle="tooltip"]').tooltip()}, 200)
 		    }); 
 		    $("#nav-data-tab").click(function(){
-		    	setTimeout(function(){ $("#plot_stuff").hide().promise().then($('#table_container').show())}, 200)
+
+		    	setTimeout(function(){ 
+            $("#plot_stuff").hide().promise().then($('#table_container').show())
+            $($.fn.dataTable.tables(true)).DataTable()
+              .columns.adjust();
+          }, 200)
 		    	
 		    });
 
@@ -285,8 +302,15 @@ function hit_api(my_data){
 		            { title: "Q9" },
 		            { title: "Q10" }
 		        ],
-		        "dom": ''
+		        //"dom": '',
+            "scrollY": "60vh",
+            "scrollCollapse": true,
+            "paging": false,
+            "searching": false,
+            "info": false,
+            "bSort": false
 		    } );
+
 
 
 
@@ -333,7 +357,7 @@ function parseFile(){
 	}
 
 	//console.log(JSON.parse(reader.result))
-	$('#my_table').DataTable( {
+  $('#my_table').DataTable( {
         data: out,
         columns: [
             { title: "Q1" },
@@ -347,7 +371,13 @@ function parseFile(){
             { title: "Q9" },
             { title: "Q10" }
         ],
-        "dom": ''
+        //"dom": '',
+        "scrollY": "60vh",
+        "scrollCollapse": true,
+        "paging": false,
+        "searching": false,
+        "info": false,
+        "bSort": false
     } );
 }
 
@@ -601,7 +631,7 @@ svg.append('svg:image')
 .attr('height', 12.5)
 .attr('data-toggle', 'tooltip')
 .attr('data-placement', 'right')
-.attr('title', 'Acceptability Ranges From: Percentiles From: Bangor, A., Kortum, P. T., & Miller, J. T. (2008). An empirical evaluation of the system usability scale. Intl. Journal of Human–Computer Interaction, 24(6), 574-594.')
+.attr('title', 'Acceptability Ranges From: Bangor, A., Kortum, P. T., & Miller, J. T. (2008). An empirical evaluation of the system usability scale. Intl. Journal of Human–Computer Interaction, 24(6), 574-594.')
 
 //--letter grades
 svg.append('rect')
@@ -708,7 +738,7 @@ svg.append('svg:image')
 .attr('height', 12.5)
 .attr('data-toggle', 'tooltip')
 .attr('data-placement', 'right')
-.attr('title', 'Letter Grade Ratings From: Percentiles From: Sauro, J., & Lewis, J. R. (2016). Quantifying the user experience: Practical statistics for user research. Morgan Kaufmann.')
+.attr('title', 'Letter Grade Ratings From: Sauro, J., & Lewis, J. R. (2016). Quantifying the user experience: Practical statistics for user research. Morgan Kaufmann.')
 
 
 //--awful to excellent bar
