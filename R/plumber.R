@@ -61,7 +61,7 @@ function(req) {
   
   
   
-  N.bootstrap <- 1000
+  N.bootstrap <- 2000
   ci.hw.increase <- 0
   b <- bootstrap(sus_scores, mean(sus_scores), R = N.bootstrap)  
   ci <- CI.bca(b, probs = c(0.025-ci.hw.increase, 0.975+ci.hw.increase), expand = TRUE)
