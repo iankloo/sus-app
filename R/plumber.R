@@ -52,11 +52,24 @@ function(req) {
   #mod <- readRDS('stanmod.rds')
   #new.fit <- stan(model_code = 'mod', data = sub,refresh=0)
   
-  samps <- as.vector(extract(new.fit)$mu)
-  lower<-summary(new.fit, pars = c("mu"), probs = c(0.05, 0.95))$summary[[4]]
-  upper<-summary(new.fit, pars = c("mu"), probs = c(0.05, 0.95))$summary[[5]]
+  #samps <- as.vector(extract(new.fit)$mu)
+  #lower<-summary(new.fit, pars = c("mu"), probs = c(0.05, 0.95))$summary[[4]]
+  #upper<-summary(new.fit, pars = c("mu"), probs = c(0.05, 0.95))$summary[[5]]
   
-  ci <- matrix(c(lower, upper), nrow = 1)
+  fit <- stan(file = 'BayesCode.stan', data = bayes.dat,refresh=0)
+
+  bayes.est<-rstan::extract(new.fit,pars="mu[1]")$`mu[1]`
+  sig.est<-rstan::extract(new.fit,pars="sigma")$sigma
+  alpha=(0-bayes.est)/sig.est
+  beta=(100-bayes.est)/sig.est
+  ex.val<-bayes.est + 
+    sig.est*(dnorm(alpha)-dnorm(beta))/
+    (pnorm(beta)-pnorm(alpha))
+
+  bayes.ci<-quantile(ex.val,probs=c(.025,.975))
+
+  
+  ci <- matrix(c(bayes.ci[1], bayes.ci[2]), nrow = 1)
   bayes <- list(sus_scores = sus_scores, ci = ci[1,], replicates = samps)
   
   
