@@ -1,24 +1,17 @@
 
-// The input data is a vector 'y' of length 'N'.
 data {
   int<lower=0> N;
+  int<lower=0>J; //Number of tests
   vector[N] y;
-  real<lower=0> sigma;
+  int g[N]; //Group y is in
 }
-
-// The parameters accepted by the model. Our model
-// accepts two parameters 'mu' and 'sigma'.
 parameters {
-  real<lower=0,upper=100> mu;
+  vector[J] mu;
+  real<lower=0,upper=30> sigma;
 }
-
-// The model to be estimated. We model the output
-// 'y' to be normally distributed with mean 'mu'
-// and standard deviation 'sigma'.
 model {
   for (n in 1:N) {
-    y[n] ~ normal(mu, sigma)T[0,100];
+    y[n] ~ normal(mu[g[n]], sigma)T[0,100];
   }
-  mu ~ skew_normal(86,22,-2.2)T[0,100];
+  mu ~ normal(70,12);
 }
-
