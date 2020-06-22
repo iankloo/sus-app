@@ -44,9 +44,11 @@ function(req) {
   evens <- seq(2, ncol(df_sub), by = 2)
   sus_scores <- apply(df_sub, 1, sus_converter, odds, evens)
   
-  sub <-list(N=length(sus_scores),
-             y=sus_scores,
-             sigma=sd(sus_scores))
+  
+  sub <- list(N=length(sus_scores),
+              J=1,#always set to 1 if using single sus result
+              y=sus_scores,
+              g=rep(1,length(sus_scores)))#always rep 1 if single sus result
   
   new.fit <- stan(file = 'R/stanmod.stan', data = sub,refresh=0)
   #mod <- readRDS('stanmod.rds')
@@ -56,7 +58,7 @@ function(req) {
   #lower<-summary(new.fit, pars = c("mu"), probs = c(0.05, 0.95))$summary[[4]]
   #upper<-summary(new.fit, pars = c("mu"), probs = c(0.05, 0.95))$summary[[5]]
   
-  fit <- stan(file = 'BayesCode.stan', data = bayes.dat,refresh=0)
+  #fit <- stan(file = 'BayesCode.stan', data = bayes.dat,refresh=0)
 
   bayes.est<-rstan::extract(new.fit,pars="mu[1]")$`mu[1]`
   sig.est<-rstan::extract(new.fit,pars="sigma")$sigma
@@ -70,7 +72,7 @@ function(req) {
 
   
   ci <- matrix(c(bayes.ci[1], bayes.ci[2]), nrow = 1)
-  bayes <- list(sus_scores = sus_scores, ci = ci[1,], replicates = samps)
+  bayes <- list(sus_scores = sus_scores, ci = ci[1,], replicates = ex.val)
   
   
   

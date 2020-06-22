@@ -12,7 +12,7 @@ library(servr)
 #   servr::httw('', port = '80', daemon = FALSE)
 # })
 
-#setwd('~/Documents/projects/nag/d3_dev/')
+#setwd('~/Documents/projects/nag/sus-app/')
 
 servr::httd('.', port = '80', host = '0.0.0.0', daemon = TRUE)
 

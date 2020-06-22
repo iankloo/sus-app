@@ -389,7 +389,7 @@ d3.select("svg").remove();
 
 
 	// set the dimensions and margins of the graph
-var margin = {top: 10, right: 30, bottom: 50, left: 60}
+var margin = {top: 10, right: 80, bottom: 50, left: 60}
     width = 800 - margin.left - margin.right,
     height = 500 - margin.top - margin.bottom;
 
@@ -411,7 +411,7 @@ var svg = d3.select("#my_dataviz")
 
 	var int_high = data.ci[1].toFixed(2)
 	var int_low = data.ci[0].toFixed(2)
-	var mean = d3.mean(data.sus_scores).toFixed(2)
+	var mean = d3.mean(data.replicates).toFixed(2)
 	var int_min = d3.min(data.sus_scores).toFixed(2)
 	var int_max = d3.max(data.sus_scores).toFixed(2)
 
@@ -461,8 +461,8 @@ var freq = counts[0].map(function (x, i) {
 
 
 var rad_scale = d3.scaleLinear()
-  .domain([d3.min(freq[1]), d3.max(freq[1])]) // unit: km
-  .range([2, 75])
+  .domain([d3.min(freq[1]), d3.max(freq[1])])
+  .range([3, 65])
 
 var circles = svg.selectAll('circle')
 .data(freq)
