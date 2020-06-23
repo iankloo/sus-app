@@ -72,7 +72,7 @@ function(req) {
 
   
   ci <- matrix(c(bayes.ci[1], bayes.ci[2]), nrow = 1)
-  bayes <- list(sus_scores = sus_scores, ci = ci[1,], replicates = ex.val)
+  bayes <- list(sus_scores = sus_scores, ci = ci[1,], replicates = ex.val, mean = mean(ex.val))
   
   
   
@@ -80,7 +80,7 @@ function(req) {
   ci.hw.increase <- 0
   b <- bootstrap(sus_scores, mean(sus_scores), R = N.bootstrap)  
   ci <- CI.bca(b, probs = c(0.025-ci.hw.increase, 0.975+ci.hw.increase), expand = TRUE)
-  boot <- list(sus_scores = sus_scores, ci = ci[1,], replicates = b$replicates)
+  boot <- list(sus_scores = sus_scores, ci = ci[1,], replicates = b$replicates, mean = mean(sus_scores))
 
   #out <- list(sus_scores = sus_scores, ci = ci[1,], replicates = samps)
   out <- list(bayes, boot)

@@ -253,28 +253,31 @@ function hit_api(my_data){
 			$('#table_container').hide()
 			makePlot(dat[0])
 			setTimeout(function(){ $('[data-toggle="tooltip"]').tooltip()}, 200)
+
+      plot_name = 'bayesian_ci_sus.png'
+
 			$("#export").click(function(){
-		    	saveSvgAsPng(d3.select("svg").node(), "bayesian_ci_sus.png");
+          d3.selectAll('image').style('visibility', 'hidden')
+		    	saveSvgAsPng(d3.select("svg").node(), plot_name)
+
+          setTimeout( function() {
+            d3.selectAll('image').style('visibility', 'visible')
+          }, 50)
+          
 		  }); 
 
 		    $("#nav-bootstrap-tab").click(function(){
+          plot_name = 'bca_ci_sus.png'
 		    	$('#table_container').hide()
 		    	$("#plot_stuff").show()
 		    	makePlot(dat[1])
-          $("#export").click(function(){
-              saveSvgAsPng(d3.select("svg").node(), "bca_ci_sus.png");
-          }); 
-
 		    	setTimeout(function(){ $('[data-toggle="tooltip"]').tooltip()}, 200)
 		    }); 
 		    $("#nav-bayes-tab").click(function(){
+          plot_name = 'bayesian_ci_sus.png'
 		    	$('#table_container').hide()
 		    	$("#plot_stuff").show()
-		    	makePlot(dat[0])
-          $("#export").click(function(){
-              saveSvgAsPng(d3.select("svg").node(), "bayesian_ci_sus.png");
-          }); 
-		    	
+		    	makePlot(dat[0])		    	
 		    	setTimeout(function(){ $('[data-toggle="tooltip"]').tooltip()}, 200)
 		    }); 
 		    $("#nav-data-tab").click(function(){
@@ -408,10 +411,10 @@ var svg = d3.select("#my_dataviz")
 
 //d3.json('example.json', function(data){
 
-
 	var int_high = data.ci[1].toFixed(2)
 	var int_low = data.ci[0].toFixed(2)
-	var mean = d3.mean(data.replicates).toFixed(2)
+	//var mean = d3.mean(data.replicates).toFixed(2)
+	var mean = data.mean[0].toFixed(2)
 	var int_min = d3.min(data.sus_scores).toFixed(2)
 	var int_max = d3.max(data.sus_scores).toFixed(2)
 
