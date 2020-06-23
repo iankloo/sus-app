@@ -222,14 +222,14 @@ function hit_api(my_data){
 						<div class="tab-content" id="nav-tabContent">
 							<div class="tab-pane fade show active" id="nav-bayes" role="tabpanel" aria-labelledby="nav-bayes-tab">
 						  		<h4>Using this Plot</h4>
-						  		<p>This plot shows the sample mean and 95% credibility interval for the population mean SUS score from your uploaded data. The min and max bars show the range of the single-user SUS scores, and the circles in the bottom bar display the frequencies of the single-user SUS scores, where larger circles denote a larger number of scores.</p>
+						  		<p>This plot shows the posterior mean and 95% credible interval for the population mean SUS score from your uploaded data. The min and max bars show the range of the single-user SUS scores, and the circles in the bottom bar display the frequencies of the single-user SUS scores, where larger circles denote a larger number of scores.</p>
 						  		<p>The estimates for the credibility interval’s bounds were found using a Bayesian method that is effective regardless of sample size. More information on the methodology is presented in Clark et al. (2020) at [doi link here].”</p>
                   <p>Of note, the mean in the Bayes plot is identical to the mean in the Bootstrap plot, so I believe we are seeing the sample mean in the plot (vs. the mean of the posterior distribution).</p>
 						  	</div>
 						  	<div class="tab-pane fade" id="nav-bootstrap" role="tabpanel" aria-labelledby="nav-bootstrap-tab">
 						  		<h4>Using this Plot</h4>
 						  		<p>This plot shows the sample mean and 95% confidence interval for the population mean SUS score from your uploaded data. The min and max bars show the range of the single-user SUS scores, and the circles in the bottom bar display the frequencies of the single-user SUS scores, where larger circles denote a larger number of scores.</p>
-						  		<p>The estimates for the confidence interval’s bounds were found using the bias-corrected accelerated bootstrap (BCa) method that is most effective with sample sizes greater than X. More information on the methodology is presented in Clark et al. (2020) at [add doi link here].</p>
+						  		<p>The estimates for the confidence interval’s bounds were found using the expanded bias-corrected accelerated bootstrap (BCa) method, which is effective for sample sizes greater than 4. More information on the methodology is presented in Clark et al. (2020) at [add doi link here].</p>
 						  	</div>
 							<div class="tab-pane fade" id="nav-data" role="tabpanel" aria-labelledby="nav-data-tab">
 						  	</div	
