@@ -392,7 +392,7 @@ d3.select("svg").remove();
 
 
 	// set the dimensions and margins of the graph
-var margin = {top: 10, right: 100, bottom: 50, left: 60}
+var margin = {top: 10, right: 100, bottom: 70, left: 60}
     width = 800 - margin.left - margin.right,
     height = 500 - margin.top - margin.bottom;
 
@@ -1103,6 +1103,36 @@ svg.append('text')
 .attr('y', bar_height * 2)
 .style('fill-opacity','1')
 
+
+//sample size and prior distribution information
+svg.append("text")             
+  .attr("transform",
+        "translate(" + (width/4) + " ," + 
+                       (height + 60) + ")")
+  .style("text-anchor", "middle")
+  .text("SUS Sample Size: " + data.sus_scores.length)
+  .style('font-size', '.7em')
+
+if(data.type == 'bayes'){
+  svg.append("text")             
+  .attr("transform",
+        "translate(" + (width / 1.25) + " ," + 
+                       (height + 60) + ")")
+  .style("text-anchor", "middle")
+  .html("Prior is derived empirically from Bangor et al (2008)")
+  .style('font-size', '.7em')
+  .attr('data-toggle', 'tooltip')
+  .attr('data-placement', 'right')
+  .attr('title', 'Bangor, A., Kortum, P. T., & Miller, J. T. (2008). An empirical evaluation of the system usability scale. Intl. Journal of Human–Computer Interaction, 24(6), 574-594.')
+} else{
+  svg.append("text")             
+  .attr("transform",
+        "translate(" + (width / 1.25) + " ," + 
+                       (height + 60) + ")")
+  .style("text-anchor", "middle")
+  .text("Bootstrap Sample Size: " + data.replicates.length)
+  .style('font-size', '.7em')
+}
 
 
 //axis labels
