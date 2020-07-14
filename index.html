@@ -80,11 +80,13 @@ svg{
 
 
 
+
+
 </style>
 
 
  <nav class="navbar navbar-expand-sm bg-dark navbar-dark">
-    <a class="navbar-brand" href="">Systems Usability Analyzer</a>
+    <a class="navbar-brand" href="">System Usability Scale (SUS) Score Analyzer</a>
   </nav>
 
 
@@ -203,8 +205,10 @@ function hit_api(my_data){
 
 			<nav>
 			  <div class="nav nav-tabs" id="nav-tab" role="tablist">
-			    <a class="nav-item nav-link active" id="nav-bayes-tab" data-toggle="tab" href="#nav-bayes" role="tab" aria-controls="nav-bayes" aria-selected="false">Bayes</a>
-			    <a class="nav-item nav-link" id="nav-bootstrap-tab" data-toggle="tab" href="#nav-bootstrap" role="tab" aria-controls="nav-bootstrap" aria-selected="true">Bca</a>
+        <a class="nav-item nav-link active" id="nav-rules-tab" data-toggle="tab" href="#nav-rules" role="tab" aria-controls="nav-rules" aria-selected="false">CI Decision Rules</a>
+			    <a class="nav-item nav-link color-tab" id="nav-bayes-tab" data-toggle="tab" href="#nav-bayes" role="tab" aria-controls="nav-bayes" aria-selected="false">Empirical Bayesian CI</a>
+			    <a class="nav-item nav-link color-tab" id="nav-bootstrap-tab" data-toggle="tab" href="#nav-bootstrap" role="tab" aria-controls="nav-bootstrap" aria-selected="true">Expanded BCa Bootstrap CI</a>
+          <a class="nav-item nav-link color-tab" id="nav-tdist-tab" data-toggle="tab" href="#nav-tdist" role="tab" aria-controls="nav-tdist" aria-selected="false">t Distribution CI</a>
 			    <a class="nav-item nav-link" id="nav-data-tab" data-toggle="tab" href="#nav-data" role="tab" aria-controls="nav-data" aria-selected="false">Raw Data</a>
 			  </div>
 			</nav>
@@ -220,19 +224,24 @@ function hit_api(my_data){
 					</div>
 					<div class = "col-sm-3">
 						<div class="tab-content" id="nav-tabContent">
-							<div class="tab-pane fade show active" id="nav-bayes" role="tabpanel" aria-labelledby="nav-bayes-tab">
+              <div class="tab-pane fade show active" id="nav-rules" role="tabpanel" aria-labelledby="nav-rules-tab">
+              </div>
+							<div class="tab-pane fade" id="nav-bayes" role="tabpanel" aria-labelledby="nav-bayes-tab">
 						  		<h4>Using this Plot</h4>
 						  		<p>This plot shows the posterior mean and 95% credible interval for the population mean SUS score from your uploaded data. The min and max bars show the range of the single-user SUS scores, and the circles in the bottom bar display the frequencies of the single-user SUS scores, where larger circles denote a larger number of scores.</p>
-						  		<p>The estimates for the credibility interval’s bounds were found using a Bayesian method that is effective regardless of sample size. More information on the methodology is presented in Clark et al. (2020) at [doi link here].”</p>
-                  <p>Of note, the mean in the Bayes plot is identical to the mean in the Bootstrap plot, so I believe we are seeing the sample mean in the plot (vs. the mean of the posterior distribution).</p>
+						  		<p>The estimates for the credibile interval’s bounds were found using a Bayesian method that is effective regardless of sample size. More information on the methodology is presented in Clark et al. (2020) at [doi link here].”</p>
 						  	</div>
 						  	<div class="tab-pane fade" id="nav-bootstrap" role="tabpanel" aria-labelledby="nav-bootstrap-tab">
 						  		<h4>Using this Plot</h4>
 						  		<p>This plot shows the sample mean and 95% confidence interval for the population mean SUS score from your uploaded data. The min and max bars show the range of the single-user SUS scores, and the circles in the bottom bar display the frequencies of the single-user SUS scores, where larger circles denote a larger number of scores.</p>
-						  		<p>The estimates for the confidence interval’s bounds were found using the expanded bias-corrected accelerated bootstrap (BCa) method, which is effective for sample sizes greater than 4. More information on the methodology is presented in Clark et al. (2020) at [add doi link here].</p>
+						  		<p>The estimates for the confidence interval’s bounds were found using the expanded bias-corrected accelerated bootstrap (BCa) method, which is effective for sample sizes greater than 5. More information on the methodology is presented in Clark et al. (2020) at [add doi link here].</p>
 						  	</div>
+                <div class="tab-pane fade" id="nav-tdist" role="tabpanel" aria-labelledby="nav-tdist-tab">
+                  <h4>Using this Plot</h4>
+                  <p>This plot shows the sample mean and 95% confidence interval (estimated from the t distribution) for the population mean SUS score from your uploaded data. The min and max bars show the range of the single-user SUS scores, and the circles in the bottom bar display the frequencies of the single-user SUS scores, where larger circles denote a larger number of scores.</p>
+                </div>
 							<div class="tab-pane fade" id="nav-data" role="tabpanel" aria-labelledby="nav-data-tab">
-						  	</div	
+						  </div>	
 						</div>	
 					</div>
 				</div>
@@ -243,6 +252,55 @@ function hit_api(my_data){
 			<div id = 'table_container' style="width:100%">
 				<table id="my_table" class="table table-striped table-bordered" ></table>
 			</div>
+      <div id = 'rules_container' style="width:100%">
+        <h3>Based on your uploaded data with n = <span id = 'n_text'></span></h3>
+        <div id = 'rule_text'></div>
+        <h3>Method Summaries</h3>
+        <!--Table-->
+        <table id="tablePreview" class="table table-bordered">
+        <!--Table head-->
+          <thead>
+            <tr>
+              <th>Method</th>
+              <th>Lower CI</th>
+              <th>Mean</th>
+              <th>Upper CI</th>
+              <th>Acceptability Range</th>
+              <th>Letter Grade Range</th>
+            </tr>
+          </thead>
+          <!--Table head-->
+          <!--Table body-->
+          <tbody>
+            <tr id = 'bayes_row'>
+              <td>Empirical Bayes</td>
+              <td id = 'bayes_lb'></td>
+              <td id = 'bayes_mean'></td>
+              <td id = 'bayes_ub'></td>
+              <td id = 'bayes_acc'></td>
+              <td id = 'bayes_letter'></td>
+            </tr>
+            <tr id = 'boot_row'>
+              <td>Expanded BCa Bootstrap</td>
+              <td id = 'boot_lb'></td>
+              <td id = 'boot_mean'></td>
+              <td id = 'boot_ub'></td>
+              <td id = 'boot_acc'></td>
+              <td id = 'boot_letter'></td>
+            </tr>
+            <tr id = 't_row'>
+              <td>t Distribution</td>
+              <td id = 't_lb'></td>
+              <td id = 't_mean'></td>
+              <td id = 't_ub'></td>
+              <td id = 't_acc'></td>
+              <td id = 't_letter'></td>
+            </tr>
+          </tbody>
+          <!--Table body-->
+        </table>
+        <!--Table-->
+      </div>
 
 
 				
@@ -251,8 +309,83 @@ function hit_api(my_data){
 
 			`)
 			$('#table_container').hide()
-			makePlot(dat[0])
-			setTimeout(function(){ $('[data-toggle="tooltip"]').tooltip()}, 200)
+      $('#plot_stuff').hide()
+			//makePlot(dat[0])
+			//setTimeout(function(){ $('[data-toggle="tooltip"]').tooltip()}, 200)
+      $('#n_text').text(dat[0].sus_scores.length)
+
+      console.log(dat)
+
+      $('#bayes_lb').text(dat[0].ci[0])
+      $('#bayes_ub').text(dat[0].ci[1])
+      $('#bayes_mean').text(dat[0].mean)
+      $('#bayes_acc').text(get_acc_range(dat[0].ci[0], dat[0].ci[1]))
+      $('#bayes_letter').text(get_letter_range(dat[0].ci[0], dat[0].ci[1]))
+
+      $('#boot_lb').text(dat[1].ci[0])
+      $('#boot_ub').text(dat[1].ci[1])
+      $('#boot_mean').text(dat[1].mean)
+      $('#boot_acc').text(get_acc_range(dat[1].ci[0], dat[1].ci[1]))
+      $('#boot_letter').text(get_letter_range(dat[1].ci[0], dat[1].ci[1]))
+
+      $('#t_lb').text(dat[2].ci[0])
+      $('#t_ub').text(dat[2].ci[1])
+      $('#t_mean').text(dat[2].mean)
+      $('#t_acc').text(get_acc_range(dat[2].ci[0], dat[2].ci[1]))
+      $('#t_letter').text(get_letter_range(dat[2].ci[0], dat[2].ci[1]))
+
+      if(dat[0].sus_scores.length < 5){
+        $('#rule_text').html(`
+        <p><strong><font color = '#007bff'>Empirical Bayesian CI</font></strong> is the only recommended approach.</p>
+        <p>With such a small sample, the <strong><font color = '#dc3545'>BCa Bootstrap CI</font></strong> method fails to cover the true mean at an unacceptable rate and the <strong><font color = '#dc3545'>t distribution CI</font></strong> method often violates the parameter space.</p>
+        <p>For more information, please see (link to paper)</p>
+        `)
+
+        $("#nav-bayes-tab").attr('style', 'color: #007bff !important')
+        $("#nav-bootstrap-tab").attr('style', 'color: #dc3545 !important')
+        $("#nav-tdist-tab").attr('style', 'color: #dc3545 !important')
+
+        $("#bayes_row").css('color', '#007bff')
+        $("#boot_row").css('color', '#dc3545')
+        $("#t_row").css('color', '#dc3545')
+
+      } else if(dat[0].sus_scores.length < 9){
+        $('#rule_text').html(`
+        <p><strong><font color = '#007bff'>BCa Bootstrap CI</font></strong> is the recommended approach.</p>
+        <p>The <strong><font color = '#fd7e14'>Empirical Bayesian Bootstrap CI</font></strong> method may also be used, but it will often produce wider CI widths than the recommended method.</p>
+        <p>The <strong><font color = '#dc3545'>t distribution CI</font></strong> method is not recommended because it often violates the parameter space with a sample this small.</p>
+        <p>For more information, please see (link to paper)</p>
+        `)
+
+        $("#nav-bayes-tab").attr('style', 'color: #fd7e14 !important')
+        $("#nav-bootstrap-tab").attr('style', 'color: #007bff !important')
+        $("#nav-tdist-tab").attr('style', 'color: #dc3545 !important')
+
+        $("#bayes_row").css('color', '#fd7e14')
+        $("#boot_row").css('color', '#007bff')
+        $("#t_row").css('color', '#dc3545')
+
+
+      } else{
+        $('#rule_text').html(`
+        <p><strong><font color = '#007bff'>t distribution CI</font></strong> is the recommended approach because it will often provide the narrowest CI without violating the parameter space, but the <strong><font color = '#007bff'>BCa Bootstrap CI</font></strong> method may also be useful.  Recommend checking both.</p>
+        <p>The <strong><font color = '#fd7e14'>Empirical Bayesian Bootstrap CI</font></strong> method may also be used, but it will often produce wider CI widths than the recommended methods.</p>
+        <p>For more information, please see (link to paper)</p>
+
+        `)
+        $("#nav-bayes-tab").attr('style', 'color: #fd7e14 !important')
+        $("#nav-bootstrap-tab").attr('style', 'color: #007bff !important')
+        $("#nav-tdist-tab").attr('style', 'color: #007bff !important')
+
+        $("#bayes_row").css('color', '#fd7e14')
+        $("#boot_row").css('color', '#007bff')
+        $("#t_row").css('color', '#007bff')
+      }
+      
+
+
+
+
 
       plot_name = 'bayesian_ci_sus.png'
 
@@ -269,6 +402,7 @@ function hit_api(my_data){
 		    $("#nav-bootstrap-tab").click(function(){
           plot_name = 'bca_ci_sus.png'
 		    	$('#table_container').hide()
+          $('#rules_container').hide()
 		    	$("#plot_stuff").show()
 		    	makePlot(dat[1])
 		    	setTimeout(function(){ $('[data-toggle="tooltip"]').tooltip()}, 200)
@@ -276,24 +410,42 @@ function hit_api(my_data){
 		    $("#nav-bayes-tab").click(function(){
           plot_name = 'bayesian_ci_sus.png'
 		    	$('#table_container').hide()
+          $('#rules_container').hide()
 		    	$("#plot_stuff").show()
 		    	makePlot(dat[0])		    	
 		    	setTimeout(function(){ $('[data-toggle="tooltip"]').tooltip()}, 200)
 		    }); 
+
+        $("#nav-tdist-tab").click(function(){
+          plot_name = 'tdist_ci_sus.png'
+          $('#table_container').hide()
+          $('#rules_container').hide()
+          $("#plot_stuff").show()
+          makePlot(dat[2])          
+          setTimeout(function(){ $('[data-toggle="tooltip"]').tooltip()}, 200)
+        }); 
+
 		    $("#nav-data-tab").click(function(){
 
 		    	setTimeout(function(){ 
-            $("#plot_stuff").hide().promise().then($('#table_container').show())
+            $("#plot_stuff").hide().promise().then($('#rules_container').hide().promise().then($('#table_container').show()))
             $($.fn.dataTable.tables(true)).DataTable()
               .columns.adjust();
           }, 200)
 		    	
 		    });
 
+        $("#nav-rules-tab").click(function(){
+          setTimeout(function(){ 
+            $("#plot_stuff").hide().promise().then($('#table_container').hide().promise().then($('#rules_container').show()))
+          }, 250)
+        });
+
 			//rerender data table
 			$('#my_table').DataTable( {
 		        data: out,
 		        columns: [
+                { title: "Respondent ID" },
 		            { title: "Q1" },
 		            { title: "Q2" },
 		            { title: "Q3" },
@@ -363,6 +515,7 @@ function parseFile(){
   $('#my_table').DataTable( {
         data: out,
         columns: [
+            { title: "Respondent ID" },
             { title: "Q1" },
             { title: "Q2" },
             { title: "Q3" },
@@ -392,7 +545,7 @@ d3.select("svg").remove();
 
 
 	// set the dimensions and margins of the graph
-var margin = {top: 10, right: 100, bottom: 70, left: 60}
+var margin = {top: 10, right: 160, bottom: 70, left: 60}
     width = 800 - margin.left - margin.right,
     height = 500 - margin.top - margin.bottom;
 
@@ -507,54 +660,105 @@ var circles = svg.selectAll('circle')
 // .attr('alignment-baseline', 'central')
 
 
+  if(data.type[0] == 'tdist'){
 
-  // set the parameters for the histogram
-  var histogram = d3.histogram()
-      .value(function(d) { return d; })   // I need to give the vector of value
-      .domain(x.domain())  // then the domain of the graphic
-      .thresholds(x.ticks(70)); // then the numbers of bins
+    var x = d3.scaleLinear()
+      .domain([0, 2001])
+      .range([ 0, width ]);
+    // svg.append("g")
+    //   .attr("transform", "translate(0," + height + ")")
+    //   .call(d3.axisBottom(x).ticks(5));
 
-  // And apply this function to data to get the bins
-  var bins = histogram(data.replicates);
+    //console.log(d3.max(data, function(d) { return d.replicates; }))
+    //console.log(0.1326553)
 
-  // Y axis: scale and draw:
-  var y = d3.scaleLinear()
-      .range([height, bar_height*2 + 80]);
-      y.domain([0, d3.max(bins, function(d) { return d.length; })]);   // d3.hist has to be called before the Y axis obviously
-  svg.append("g")
-  	  .attr('transform', 'translate(0,' + -bar_height*5 + ")")
-      .call(d3.axisLeft(y));
+    var y = d3.scaleLinear()
+        .domain([0, d3.max(data.replicates)])
+        .range([ height, 100 ]);
+      svg.append("g")
+        .call(d3.axisLeft(y))
+        .attr('transform', 'translate(0,' + -bar_height*5 + ")")
 
 
-  // append the bar rectangles to the svg element
-  svg.selectAll("rect")
-      .data(bins)
-      .enter()
-      .append("rect")
-        .attr("x", function(d){
-        	return(x(d.x0))
-        })
-        //.attr("transform", function(d) {return "translate(" + x(d.x0) + "," + (y(d.length) - bar_height*5) + ")"; })
-        .attr("width", function(d) { 
-        	if((x(d.x1) - x(d.x0) - 1) > 0){
-        		return x(d.x1) - x(d.x0) - 1
-        	} else{
-        		return 0
-        	}
-        })
-        .attr("height", 0)
-        .attr('y', height - bar_height*5)
-        .style("fill", "#878787")
-    	.style('fill-opacity', .75)
+
+    var valueline = d3.line()
+        .x(function(d, i) { return x(i); })
+        .y(function(d) { return y(d); });
+
+        //console.log(valueline(data.replicates))
+    var flatline = d3.line()
+      .x(function(d, i) { return x(i); })
+      .y(function(d) { return height - bar_height*5; });
+
+      svg.append("path")
+        .attr('class', 'line')
+        .attr('stroke', '#878787')
+        .attr('stroke-width', '2px')
+        .attr('fill', 'none')
+        .attr('d', flatline(data.replicates))
         .transition()
         .duration(1000)
-        // .delay(function(d, i){
-        // 	return i * 0
-        // })
-        .attr('y', function(d){
-        	return y(d.length) - bar_height*5
-        })
-        .attr("height", function(d) { return height - y(d.length); })
+        .attr('d', valueline(data.replicates))
+        .attr('transform', 'translate(0,' + -bar_height*5 + ")")
+
+
+    var x = d3.scaleLinear()
+      .domain([0, 100])
+      .range([ 0, width ]);
+      svg.append("g")
+        .attr("transform", "translate(0," + height + ")")
+        .call(d3.axisBottom(x).ticks(5));
+
+  } else{
+    // set the parameters for the histogram
+    var histogram = d3.histogram()
+        .value(function(d) { return d; })   // I need to give the vector of value
+        .domain(x.domain())  // then the domain of the graphic
+        .thresholds(x.ticks(70)); // then the numbers of bins
+
+    // And apply this function to data to get the bins
+    var bins = histogram(data.replicates);
+
+    // Y axis: scale and draw:
+    var y = d3.scaleLinear()
+        .range([height, bar_height*2 + 80]);
+        y.domain([0, d3.max(bins, function(d) { return d.length; })]);   // d3.hist has to be called before the Y axis obviously
+    svg.append("g")
+        .attr('transform', 'translate(0,' + -bar_height*5 + ")")
+        .call(d3.axisLeft(y));
+
+
+    // append the bar rectangles to the svg element
+    svg.selectAll("rect")
+        .data(bins)
+        .enter()
+        .append("rect")
+          .attr("x", function(d){
+            return(x(d.x0))
+          })
+          //.attr("transform", function(d) {return "translate(" + x(d.x0) + "," + (y(d.length) - bar_height*5) + ")"; })
+          .attr("width", function(d) { 
+            if((x(d.x1) - x(d.x0) - 1) > 0){
+              return x(d.x1) - x(d.x0) - 1
+            } else{
+              return 0
+            }
+          })
+          .attr("height", 0)
+          .attr('y', height - bar_height*5)
+          .style("fill", "#878787")
+        .style('fill-opacity', .75)
+          .transition()
+          .duration(1000)
+          // .delay(function(d, i){
+          //  return i * 0
+          // })
+          .attr('y', function(d){
+            return y(d.length) - bar_height*5
+          })
+          .attr("height", function(d) { return height - y(d.length); })
+  }
+  
         
      
 
@@ -1124,7 +1328,7 @@ if(data.type == 'bayes'){
   .attr('data-toggle', 'tooltip')
   .attr('data-placement', 'right')
   .attr('title', 'Bangor, A., Kortum, P. T., & Miller, J. T. (2008). An empirical evaluation of the system usability scale. Intl. Journal of Human–Computer Interaction, 24(6), 574-594.')
-} else{
+} else if(data.type == 'boot'){
   svg.append("text")             
   .attr("transform",
         "translate(" + (width / 1.25) + " ," + 
@@ -1161,6 +1365,68 @@ svg.append("text")
 }
 
 
+
+
+function get_acc_range(min, max){
+  if(min < 50){
+    var min_out = 'Unacceptable'
+  } else if(min < 70){
+    var min_out = 'Marginal'
+  } else{
+    var min_out = 'Acceptable'
+  }
+
+  if(max < 50){
+    var max_out = 'Unacceptable'
+  } else if(max < 70){
+    var max_out = 'Marginal'
+  } else{
+    var max_out = 'Acceptable'
+  }
+
+  if(max_out == min_out){
+    var out = min_out
+  } else{
+    var out = min_out + " to " + max_out
+  }
+
+  return(out)
+}
+
+
+function get_letter_range(min, max){
+  if(min <= 52.5){
+    var min_out = 'F'
+  } else if(min <= 62.5){
+    var min_out = 'D'
+  } else if(min <= 72.5){
+    var min_out = 'C'
+  } else if(min <= 80){
+    var min_out = 'B'
+  } else{
+    var min_out = 'A'
+  }
+
+  if(max <= 52.5){
+    var max_out = 'F'
+  } else if(max <= 62.5){
+    var max_out = 'D'
+  } else if(max <= 72.5){
+    var max_out = 'C'
+  } else if(max <= 80){
+    var max_out = 'B'
+  } else{
+    var max_out = 'A'
+  }
+
+  if(max_out == min_out){
+    var out = min_out
+  } else{
+    var out = min_out + " to " + max_out
+  }
+
+  return(out)
+}
 
 
 

@@ -11,6 +11,7 @@ library(plumber)
 library(data.table)
 library(rstan)
 library(resample)
+library(LaplacesDemon)
 
 source('R/functions.R')
 
@@ -81,8 +82,14 @@ function(req) {
   b <- bootstrap(sus_scores, mean(sus_scores), R = N.bootstrap)  
   ci <- CI.bca(b, probs = c(0.025-ci.hw.increase, 0.975+ci.hw.increase), expand = TRUE)
   boot <- list(sus_scores = sus_scores, ci = ci[1,], replicates = b$replicates, mean = mean(sus_scores), type = 'boot')
+  
+  x=seq(0,100,by=0.05)
+  dens <- dst(x, mu=mean(sus_scores), sigma=sd(sus_scores)/sqrt(length(sus_scores)), nu=length(sus_scores), log=FALSE)
+  t_ci <- t.test(sus_scores)
+  
+  tdist <- list(sus_scores = sus_scores, ci = t_ci$conf.int, replicates = dens, mean = mean(sus_scores), type = 'tdist')
 
   #out <- list(sus_scores = sus_scores, ci = ci[1,], replicates = samps)
-  out <- list(bayes, boot)
+  out <- list(bayes, boot, tdist)
   return(out)
 }
