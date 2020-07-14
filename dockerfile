@@ -18,7 +18,7 @@ RUN ["r", "R/install_stan.R"]
 RUN R -e "install.packages(c('plumber', 'data.table', 'rstan', 'callr'))"
 RUN R -e "install.packages(c('servr'))"
 RUN R -e "install.packages(c('resample'))"
-
+RUN R -e "install.packages(c('LaplacesDemon'))"
 
 COPY / /
 
