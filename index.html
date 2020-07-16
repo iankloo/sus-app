@@ -349,7 +349,7 @@ function hit_api(my_data){
 
       if(dat[0].sus_scores.length < 5){
         $('#rule_text').html(`
-        <p>The <strong><font color = '#007bff'>Empirical Bayesian Bootstrap CI</font></strong> method is valid with any value of n. If you are comfortable interpreting Bayesian CI's and accept the prior that we constructed using an existing repository of SUS studies, use this method.</p>
+        <p>The <strong><font color = '#007bff'>Empirical Bayesian CI</font></strong> method is valid with any sample size (n). If you are comfortable interpreting Bayesian CI's and accept the prior that we constructed using an existing repository of SUS studies, use this method.</p>
 
         <p>With such a small sample, frequentist methods (<strong><font color = '#dc3545'>Expanded BCa Bootstrap CI</font></strong> and <strong><font color = '#dc3545'>t distribution CI</font></strong>) are not recommended.
 
@@ -382,7 +382,7 @@ function hit_api(my_data){
 
       } else if(dat[0].sus_scores.length < 9){
         $('#rule_text').html(`
-          <p>The <strong><font color = '#007bff'>Empirical Bayesian Bootstrap CI</font></strong> method is valid with any value of n. If you are comfortable interpreting Bayesian CI's and accept the prior that we constructed using an existing repository of SUS studies, use this method.</p>
+          <p>The <strong><font color = '#007bff'>Empirical Bayesian CI</font></strong> method is valid with any sample size (n). If you are comfortable interpreting Bayesian CI's and accept the prior that we constructed using an existing repository of SUS studies, use this method.</p>
 
           <p>If you would rather use a frequentist method, we recommend the <strong><font color = '#007bff'>Expanded BCa Bootstrap CI</font></strong>.  n is not large enough to recommend using the <strong><font color = '#dc3545'>t distribution CI</font></strong>.
         `)
@@ -421,7 +421,7 @@ function hit_api(my_data){
 
         if(Math.abs((dat[2].ci[1] - dat[2].ci[0]) - (dat[1].ci[1] - dat[1].ci[0])) < 1){
           $('#rule_text').html(`
-          <p>The <strong><font color = '#007bff'>Empirical Bayesian Bootstrap CI</font></strong> method is valid with any value of n. If you are comfortable interpreting Bayesian CI's and accept the prior that we constructed using an existing repository of SUS studies, use this method.</p>
+          <p>The <strong><font color = '#007bff'>Empirical Bayesian CI</font></strong> method is valid with any value of n. If you are comfortable interpreting Bayesian CI's and accept the prior that we constructed using an existing repository of SUS studies, use this method.</p>
 
           <p>If you would rather use a frequentist method, we recommend either the <strong><font color = '#007bff'>t distribution CI</font></strong> or the <strong><font color = '#007bff'>Expanded BCa Bootstrap CI</font></strong>.  The CI widths are similar enough that you should use the method you are most comfrotable interpreting.</p>
 
@@ -462,7 +462,7 @@ function hit_api(my_data){
 
         } else if((dat[2].ci[1] - dat[2].ci[0]) < (dat[1].ci[1] - dat[1].ci[0])){
           $('#rule_text').html(`
-          <p>The <strong><font color = '#007bff'>Empirical Bayesian Bootstrap CI</font></strong> method is valid with any value of n. If you are comfortable interpreting Bayesian CI's and accept the prior that we constructed using an existing repository of SUS studies, use this method.</p>
+          <p>The <strong><font color = '#007bff'>Empirical Bayesian CI</font></strong> method is valid with any sample size (n). If you are comfortable interpreting Bayesian CI's and accept the prior that we constructed using an existing repository of SUS studies, use this method.</p>
 
           <p>If you would rather use a frequentist method, we recommend the <strong><font color = '#007bff'>t distribution CI</font></strong> because it produces a narrower interval than the <strong><font color = '#dc3545'>Expanded BCa Bootstrap CI</font></strong>  in this case.</p>
 
@@ -502,7 +502,7 @@ function hit_api(my_data){
 
         } else{
           $('#rule_text').html(`
-          <p>The <strong><font color = '#007bff'>Empirical Bayesian Bootstrap CI</font></strong> method is valid with any value of n. If you are comfortable interpreting Bayesian CI's and accept the prior that we constructed using an existing repository of SUS studies, use this method.</p>
+          <p>The <strong><font color = '#007bff'>Empirical Bayesian CI</font></strong> method is valid with any sample size (n). If you are comfortable interpreting Bayesian CI's and accept the prior that we constructed using an existing repository of SUS studies, use this method.</p>
 
           <p>If you would rather use a frequentist method, we recommend the <strong><font color = '#007bff'>Expanded BCa Bootstrap CI</font></strong> because it produces a narrower interval than the <strong><font color = '#dc3545'>t distribution CI</font></strong> in this case.</p>
 
