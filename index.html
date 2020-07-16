@@ -255,51 +255,6 @@ function hit_api(my_data){
       <div id = 'rules_container' style="width:100%">
         <h3>Based on your uploaded data with n = <span id = 'n_text'></span></h3>
         <div id = 'rule_text'></div>
-        <h3>Method Summaries</h3>
-        <!--Table-->
-        <table id="tablePreview" class="table table-bordered">
-        <!--Table head-->
-          <thead>
-            <tr>
-              <th>Method</th>
-              <th>Lower CI</th>
-              <th>Mean</th>
-              <th>Upper CI</th>
-              <th>Acceptability Range</th>
-              <th>Letter Grade Range</th>
-            </tr>
-          </thead>
-          <!--Table head-->
-          <!--Table body-->
-          <tbody>
-            <tr id = 'bayes_row'>
-              <td>Empirical Bayes</td>
-              <td id = 'bayes_lb'></td>
-              <td id = 'bayes_mean'></td>
-              <td id = 'bayes_ub'></td>
-              <td id = 'bayes_acc'></td>
-              <td id = 'bayes_letter'></td>
-            </tr>
-            <tr id = 'boot_row'>
-              <td>Expanded BCa Bootstrap</td>
-              <td id = 'boot_lb'></td>
-              <td id = 'boot_mean'></td>
-              <td id = 'boot_ub'></td>
-              <td id = 'boot_acc'></td>
-              <td id = 'boot_letter'></td>
-            </tr>
-            <tr id = 't_row'>
-              <td>t Distribution</td>
-              <td id = 't_lb'></td>
-              <td id = 't_mean'></td>
-              <td id = 't_ub'></td>
-              <td id = 't_acc'></td>
-              <td id = 't_letter'></td>
-            </tr>
-          </tbody>
-          <!--Table body-->
-        </table>
-        <!--Table-->
       </div>
 
 
@@ -314,126 +269,31 @@ function hit_api(my_data){
 			//setTimeout(function(){ $('[data-toggle="tooltip"]').tooltip()}, 200)
       $('#n_text').text(dat[0].sus_scores.length)
 
-      console.log(dat)
-
-      $('#bayes_lb').text(dat[0].ci[0])
-      $('#bayes_ub').text(dat[0].ci[1])
-      $('#bayes_mean').text(dat[0].mean)
-      $('#bayes_acc').text(get_acc_range(dat[0].ci[0], dat[0].ci[1]))
-      $('#bayes_letter').text(get_letter_range(dat[0].ci[0], dat[0].ci[1]))
-
-      $('#boot_lb').text(dat[1].ci[0])
-      $('#boot_ub').text(dat[1].ci[1])
-      $('#boot_mean').text(dat[1].mean)
-      $('#boot_acc').text(get_acc_range(dat[1].ci[0], dat[1].ci[1]))
-      $('#boot_letter').text(get_letter_range(dat[1].ci[0], dat[1].ci[1]))
-
-      $('#t_lb').text(dat[2].ci[0])
-      $('#t_ub').text(dat[2].ci[1])
-      $('#t_mean').text(dat[2].mean)
-      $('#t_acc').text(get_acc_range(dat[2].ci[0], dat[2].ci[1]))
-      $('#t_letter').text(get_letter_range(dat[2].ci[0], dat[2].ci[1]))
-
-      if(dat[0].sus_scores.length < 5){
-        $('#rule_text').html(`
-        <p><strong><font color = '#007bff'>Empirical Bayesian CI</font></strong> is the only recommended approach.</p>
-        <p>With such a small sample, the <strong><font color = '#dc3545'>BCa Bootstrap CI</font></strong> method fails to cover the true mean at an unacceptable rate and the <strong><font color = '#dc3545'>t distribution CI</font></strong> method often violates the parameter space.</p>
-        <p>For more information, please see (link to paper)</p>
-        `)
-
-        $("#nav-bayes-tab").attr('style', 'color: #007bff !important')
-        $("#nav-bootstrap-tab").attr('style', 'color: #dc3545 !important')
-        $("#nav-tdist-tab").attr('style', 'color: #dc3545 !important')
-
-        $("#bayes_row").css('color', '#007bff')
-        $("#boot_row").css('color', '#dc3545')
-        $("#t_row").css('color', '#dc3545')
-
-      } else if(dat[0].sus_scores.length < 9){
-        $('#rule_text').html(`
-        <p><strong><font color = '#007bff'>BCa Bootstrap CI</font></strong> is the recommended approach.</p>
-        <p>The <strong><font color = '#fd7e14'>Empirical Bayesian Bootstrap CI</font></strong> method may also be used, but it will often produce wider CI widths than the recommended method.</p>
-        <p>The <strong><font color = '#dc3545'>t distribution CI</font></strong> method is not recommended because it often violates the parameter space with a sample this small.</p>
-        <p>For more information, please see (link to paper)</p>
-        `)
-
-        $("#nav-bayes-tab").attr('style', 'color: #fd7e14 !important')
-        $("#nav-bootstrap-tab").attr('style', 'color: #007bff !important')
-        $("#nav-tdist-tab").attr('style', 'color: #dc3545 !important')
-
-        $("#bayes_row").css('color', '#fd7e14')
-        $("#boot_row").css('color', '#007bff')
-        $("#t_row").css('color', '#dc3545')
-
-
-      } else{
-        $('#rule_text').html(`
-        <p><strong><font color = '#007bff'>t distribution CI</font></strong> is the recommended approach because it will often provide the narrowest CI without violating the parameter space, but the <strong><font color = '#007bff'>BCa Bootstrap CI</font></strong> method may also be useful.  Recommend checking both.</p>
-        <p>The <strong><font color = '#fd7e14'>Empirical Bayesian Bootstrap CI</font></strong> method may also be used, but it will often produce wider CI widths than the recommended methods.</p>
-        <p>For more information, please see (link to paper)</p>
-
-        `)
-        $("#nav-bayes-tab").attr('style', 'color: #fd7e14 !important')
-        $("#nav-bootstrap-tab").attr('style', 'color: #007bff !important')
-        $("#nav-tdist-tab").attr('style', 'color: #007bff !important')
-
-        $("#bayes_row").css('color', '#fd7e14')
-        $("#boot_row").css('color', '#007bff')
-        $("#t_row").css('color', '#007bff')
-      }
-      
-
-
-
 
 
       plot_name = 'bayesian_ci_sus.png'
 
-			$("#export").click(function(){
+      $("#export").click(function(){
           d3.selectAll('image').style('visibility', 'hidden')
-		    	saveSvgAsPng(d3.select("svg").node(), plot_name)
+          saveSvgAsPng(d3.select("svg").node(), plot_name)
 
           setTimeout( function() {
             d3.selectAll('image').style('visibility', 'visible')
           }, 50)
           
-		  }); 
+      }); 
 
-		    $("#nav-bootstrap-tab").click(function(){
-          plot_name = 'bca_ci_sus.png'
-		    	$('#table_container').hide()
-          $('#rules_container').hide()
-		    	$("#plot_stuff").show()
-		    	makePlot(dat[1])
-		    	setTimeout(function(){ $('[data-toggle="tooltip"]').tooltip()}, 200)
-		    }); 
-		    $("#nav-bayes-tab").click(function(){
-          plot_name = 'bayesian_ci_sus.png'
-		    	$('#table_container').hide()
-          $('#rules_container').hide()
-		    	$("#plot_stuff").show()
-		    	makePlot(dat[0])		    	
-		    	setTimeout(function(){ $('[data-toggle="tooltip"]').tooltip()}, 200)
-		    }); 
+        
 
-        $("#nav-tdist-tab").click(function(){
-          plot_name = 'tdist_ci_sus.png'
-          $('#table_container').hide()
-          $('#rules_container').hide()
-          $("#plot_stuff").show()
-          makePlot(dat[2])          
-          setTimeout(function(){ $('[data-toggle="tooltip"]').tooltip()}, 200)
-        }); 
+        $("#nav-data-tab").click(function(){
 
-		    $("#nav-data-tab").click(function(){
-
-		    	setTimeout(function(){ 
+          setTimeout(function(){ 
             $("#plot_stuff").hide().promise().then($('#rules_container').hide().promise().then($('#table_container').show()))
             $($.fn.dataTable.tables(true)).DataTable()
               .columns.adjust();
           }, 200)
-		    	
-		    });
+          
+        });
 
         $("#nav-rules-tab").click(function(){
           setTimeout(function(){ 
@@ -441,31 +301,259 @@ function hit_api(my_data){
           }, 250)
         });
 
-			//rerender data table
-			$('#my_table').DataTable( {
-		        data: out,
-		        columns: [
+      //rerender data table
+      $('#my_table').DataTable( {
+            data: out,
+            columns: [
                 { title: "Respondent ID" },
-		            { title: "Q1" },
-		            { title: "Q2" },
-		            { title: "Q3" },
-		            { title: "Q4" },
-		            { title: "Q5" },
-		            { title: "Q6" },
-		            { title: "Q7" },
-		            { title: "Q8" },
-		            { title: "Q9" },
-		            { title: "Q10" }
-		        ],
-		        //"dom": '',
+                { title: "Q1" },
+                { title: "Q2" },
+                { title: "Q3" },
+                { title: "Q4" },
+                { title: "Q5" },
+                { title: "Q6" },
+                { title: "Q7" },
+                { title: "Q8" },
+                { title: "Q9" },
+                { title: "Q10" }
+            ],
+            //"dom": '',
             "scrollY": "60vh",
             "scrollCollapse": true,
             "paging": false,
             "searching": false,
             "info": false,
             "bSort": false
-		    } );
+        } );
 
+
+      console.log(dat)
+
+      // $('#bayes_lb').text(dat[0].ci[0])
+      // $('#bayes_ub').text(dat[0].ci[1])
+      // $('#bayes_mean').text(dat[0].mean)
+      // $('#bayes_acc').text(get_acc_range(dat[0].ci[0], dat[0].ci[1]))
+      // $('#bayes_letter').text(get_letter_range(dat[0].ci[0], dat[0].ci[1]))
+
+      // $('#boot_lb').text(dat[1].ci[0])
+      // $('#boot_ub').text(dat[1].ci[1])
+      // $('#boot_mean').text(dat[1].mean)
+      // $('#boot_acc').text(get_acc_range(dat[1].ci[0], dat[1].ci[1]))
+      // $('#boot_letter').text(get_letter_range(dat[1].ci[0], dat[1].ci[1]))
+
+      // $('#t_lb').text(dat[2].ci[0])
+      // $('#t_ub').text(dat[2].ci[1])
+      // $('#t_mean').text(dat[2].mean)
+      // $('#t_acc').text(get_acc_range(dat[2].ci[0], dat[2].ci[1]))
+      // $('#t_letter').text(get_letter_range(dat[2].ci[0], dat[2].ci[1]))
+
+      if(dat[0].sus_scores.length < 5){
+        $('#rule_text').html(`
+        <p>The <strong><font color = '#007bff'>Empirical Bayesian Bootstrap CI</font></strong> method is valid with any value of n. If you are comfortable interpreting Bayesian CI's and accept the prior that we constructed using an existing repository of SUS studies, use this method.</p>
+
+        <p>With such a small sample, frequentist methods (<strong><font color = '#dc3545'>Expanded BCa Bootstrap CI</font></strong> and <strong><font color = '#dc3545'>t distribution CI</font></strong>) are not recommended.
+
+        <p>For more information, please see (link to paper)</p>
+        `)
+
+        $("#nav-bayes-tab").attr('style', 'color: #007bff !important')
+        $("#nav-bootstrap-tab").attr('style', 'color: rgba(108, 117, 125, 0.5) !important')
+        $("#nav-tdist-tab").attr('style', 'color: rgba(108, 117, 125, 0.5) !important')
+
+        $("#nav-bayes-tab").click(function(){
+          plot_name = 'bayesian_ci_sus.png'
+          $('#table_container').hide()
+          $('#rules_container').hide()
+          $("#plot_stuff").show()
+          makePlot(dat[0])          
+          setTimeout(function(){ $('[data-toggle="tooltip"]').tooltip()}, 200)
+        }); 
+
+        $("#nav-tdist-tab").addClass('disabled')
+        $('#nav-tdist-tab').attr('data-toggle', 'tooltip')
+        $("#nav-tdist-tab").attr('title', 'This method is not recommended given your data, please see the CI Decision Rules tab for more info.')
+        $('[data-toggle="tooltip"]').tooltip()
+
+        $("#nav-bootstrap-tab").addClass('disabled')
+        $('#nav-bootstrap-tab').attr('data-toggle', 'tooltip')
+        $("#nav-bootstrap-tab").attr('title', 'This method is not recommended given your data, please see the CI Decision Rules tab for more info.')
+        $('[data-toggle="tooltip"]').tooltip()
+
+
+      } else if(dat[0].sus_scores.length < 9){
+        $('#rule_text').html(`
+          <p>The <strong><font color = '#007bff'>Empirical Bayesian Bootstrap CI</font></strong> method is valid with any value of n. If you are comfortable interpreting Bayesian CI's and accept the prior that we constructed using an existing repository of SUS studies, use this method.</p>
+
+          <p>If you would rather use a frequentist method, we recommend the <strong><font color = '#007bff'>Expanded BCa Bootstrap CI</font></strong>.  n is not large enough to recommend using the <strong><font color = '#dc3545'>t distribution CI</font></strong>.
+        `)
+
+        $("#nav-bootstrap-tab").attr('style', 'color: #007bff !important')
+        $("#nav-tdist-tab").attr('style', 'color: #dc3545 !important')
+        $("#nav-bayes-tab").attr('style', 'color: #007bff !important')
+
+        $("#nav-bootstrap-tab").click(function(){
+          plot_name = 'bca_ci_sus.png'
+          $('#table_container').hide()
+          $('#rules_container').hide()
+          $("#plot_stuff").show()
+          makePlot(dat[1])
+          setTimeout(function(){ $('[data-toggle="tooltip"]').tooltip()}, 200)
+        }); 
+        $("#nav-bayes-tab").click(function(){
+          plot_name = 'bayesian_ci_sus.png'
+          $('#table_container').hide()
+          $('#rules_container').hide()
+          $("#plot_stuff").show()
+          makePlot(dat[0])          
+          setTimeout(function(){ $('[data-toggle="tooltip"]').tooltip()}, 200)
+        }); 
+
+
+        $("#nav-bootstrap-tab").attr('style', 'color: #007bff !important')
+        $("#nav-tdist-tab").attr('style', 'color: rgba(108, 117, 125, 0.5) !important')
+
+        $("#nav-tdist-tab").addClass('disabled')
+        $('#nav-tdist-tab').attr('data-toggle', 'tooltip')
+        $("#nav-tdist-tab").attr('title', 'This method is not recommended given your data, please see the CI Decision Rules tab for more info.')
+        $('[data-toggle="tooltip"]').tooltip()
+
+      } else{
+
+        if(Math.abs((dat[2].ci[1] - dat[2].ci[0]) - (dat[1].ci[1] - dat[1].ci[0])) < 1){
+          $('#rule_text').html(`
+          <p>The <strong><font color = '#007bff'>Empirical Bayesian Bootstrap CI</font></strong> method is valid with any value of n. If you are comfortable interpreting Bayesian CI's and accept the prior that we constructed using an existing repository of SUS studies, use this method.</p>
+
+          <p>If you would rather use a frequentist method, we recommend either the <strong><font color = '#007bff'>t distribution CI</font></strong> or the <strong><font color = '#007bff'>Expanded BCa Bootstrap CI</font></strong>.  The CI widths are similar enough that you should use the method you are most comfrotable interpreting.</p>
+
+          <p>For more information, please see (link to paper)</p>
+
+          `)
+
+          $("#nav-bootstrap-tab").attr('style', 'color: #007bff !important')
+          $("#nav-tdist-tab").attr('style', 'color: #007bff !important')
+
+          $("#nav-bayes-tab").click(function(){
+            plot_name = 'bayesian_ci_sus.png'
+            $('#table_container').hide()
+            $('#rules_container').hide()
+            $("#plot_stuff").show()
+            makePlot(dat[0])          
+            setTimeout(function(){ $('[data-toggle="tooltip"]').tooltip()}, 200)
+          }); 
+
+          $("#nav-tdist-tab").click(function(){
+            plot_name = 'tdist_ci_sus.png'
+            $('#table_container').hide()
+            $('#rules_container').hide()
+            $("#plot_stuff").show()
+            makePlot(dat[2])          
+            setTimeout(function(){ $('[data-toggle="tooltip"]').tooltip()}, 200)
+          }); 
+
+          $("#nav-bootstrap-tab").click(function(){
+            plot_name = 'bca_ci_sus.png'
+            $('#table_container').hide()
+            $('#rules_container').hide()
+            $("#plot_stuff").show()
+            makePlot(dat[1])
+            setTimeout(function(){ $('[data-toggle="tooltip"]').tooltip()}, 200)
+          }); 
+
+
+        } else if((dat[2].ci[1] - dat[2].ci[0]) < (dat[1].ci[1] - dat[1].ci[0])){
+          $('#rule_text').html(`
+          <p>The <strong><font color = '#007bff'>Empirical Bayesian Bootstrap CI</font></strong> method is valid with any value of n. If you are comfortable interpreting Bayesian CI's and accept the prior that we constructed using an existing repository of SUS studies, use this method.</p>
+
+          <p>If you would rather use a frequentist method, we recommend the <strong><font color = '#007bff'>t distribution CI</font></strong> because it produces a narrower interval than the <strong><font color = '#dc3545'>Expanded BCa Bootstrap CI</font></strong>  in this case.</p>
+
+          <p>For more information, please see (link to paper)</p>
+
+          `)
+
+          $("#nav-bootstrap-tab").attr('style', 'color: rgba(108, 117, 125, 0.5) !important')
+          $("#nav-tdist-tab").attr('style', 'color: #007bff !important')
+
+          $("#nav-bootstrap-tab").addClass('disabled')
+          $('#nav-bootstrap-tab').attr('data-toggle', 'tooltip')
+          $("#nav-bootstrap-tab").attr('title', 'This method is not recommended given your data, please see the CI Decision Rules tab for more info.')
+          $('[data-toggle="tooltip"]').tooltip()
+
+
+          $("#nav-bayes-tab").click(function(){
+            plot_name = 'bayesian_ci_sus.png'
+            $('#table_container').hide()
+            $('#rules_container').hide()
+            $("#plot_stuff").show()
+            makePlot(dat[0])          
+            setTimeout(function(){ $('[data-toggle="tooltip"]').tooltip()}, 200)
+          }); 
+
+          $("#nav-tdist-tab").click(function(){
+            plot_name = 'tdist_ci_sus.png'
+            $('#table_container').hide()
+            $('#rules_container').hide()
+            $("#plot_stuff").show()
+            makePlot(dat[2])          
+            setTimeout(function(){ $('[data-toggle="tooltip"]').tooltip()}, 200)
+          }); 
+
+
+
+
+        } else{
+          $('#rule_text').html(`
+          <p>The <strong><font color = '#007bff'>Empirical Bayesian Bootstrap CI</font></strong> method is valid with any value of n. If you are comfortable interpreting Bayesian CI's and accept the prior that we constructed using an existing repository of SUS studies, use this method.</p>
+
+          <p>If you would rather use a frequentist method, we recommend the <strong><font color = '#007bff'>Expanded BCa Bootstrap CI</font></strong> because it produces a narrower interval than the <strong><font color = '#dc3545'>t distribution CI</font></strong> in this case.</p>
+
+          <p>For more information, please see (link to paper)</p>
+
+          `)
+
+          $("#nav-bootstrap-tab").attr('style', 'color: #007bff !important')
+          $("#nav-tdist-tab").attr('style', 'color: #dc3545 !important')
+
+          $("#nav-bootstrap-tab").click(function(){
+            plot_name = 'bca_ci_sus.png'
+            $('#table_container').hide()
+            $('#rules_container').hide()
+            $("#plot_stuff").show()
+            makePlot(dat[1])
+            setTimeout(function(){ $('[data-toggle="tooltip"]').tooltip()}, 200)
+          }); 
+          $("#nav-bayes-tab").click(function(){
+            plot_name = 'bayesian_ci_sus.png'
+            $('#table_container').hide()
+            $('#rules_container').hide()
+            $("#plot_stuff").show()
+            makePlot(dat[0])          
+            setTimeout(function(){ $('[data-toggle="tooltip"]').tooltip()}, 200)
+          }); 
+
+  
+          $("#nav-bootstrap-tab").attr('style', 'color: #007bff !important')
+          $("#nav-tdist-tab").attr('style', 'color: #6c757d !important')
+
+          $("#nav-tdist-tab").addClass('disabled')
+          $('#nav-tdist-tab').attr('data-toggle', 'tooltip')
+          $("#nav-tdist-tab").attr('title', 'This method is not recommended given your data, please see the CI Decision Rules tab for more info.')
+          $('[data-toggle="tooltip"]').tooltip()
+
+
+        }
+
+
+        $("#nav-bayes-tab").attr('style', 'color: #007bff !important')
+        
+
+      }
+      
+
+
+
+
+
+      
 
 
 
