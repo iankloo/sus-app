@@ -797,6 +797,15 @@ var circles = svg.selectAll('circle')
         .attr("transform", "translate(0," + height + ")")
         .call(d3.axisBottom(x).ticks(5));
 
+
+    svg.append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 0 - margin.left)
+      .attr("x",0 - (height / 2))
+      .attr("dy", "1em")
+      .style("text-anchor", "middle")
+      .text("Density");   
+
   } else{
     // set the parameters for the histogram
     var histogram = d3.histogram()
@@ -845,6 +854,14 @@ var circles = svg.selectAll('circle')
             return y(d.length) - bar_height*5
           })
           .attr("height", function(d) { return height - y(d.length); })
+
+    svg.append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y", 0 - margin.left)
+      .attr("x",0 - (height / 2))
+      .attr("dy", "1em")
+      .style("text-anchor", "middle")
+      .text("Frequency");   
   }
   
         
@@ -1435,13 +1452,7 @@ svg.append("text")
       .style("text-anchor", "middle")
       .text("SUS Score");
 
-  svg.append("text")
-      .attr("transform", "rotate(-90)")
-      .attr("y", 0 - margin.left)
-      .attr("x",0 - (height / 2))
-      .attr("dy", "1em")
-      .style("text-anchor", "middle")
-      .text("Frequency");   
+
 
 //});
 
