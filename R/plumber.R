@@ -51,6 +51,9 @@ function(req) {
               y=sus_scores,
               g=rep(1,length(sus_scores)))#always rep 1 if single sus result
   
+  
+  sus_scores = c(80.0, 85.0, 42.5, 77.5, 87.5, 67.5, 82.5, 90.0, 90.0, 77.5, 92.5, 87.5, 75.0, 65.0, 57.5, 65.0, 62.5, 52.5, 70.0, 92.5)
+  sub <- list(N = length(sus_scores), J = 1, y = sus_scores, g = rep(1,length(sus_scores)))
   new.fit <- stan(file = 'R/stanmod.stan', data = sub,refresh=0)
   #mod <- readRDS('stanmod.rds')
   #new.fit <- stan(model_code = 'mod', data = sub,refresh=0)
@@ -70,7 +73,7 @@ function(req) {
     (pnorm(beta)-pnorm(alpha))
 
   bayes.ci<-quantile(ex.val,probs=c(.025,.975))
-
+  bayes.ci
   
   ci <- matrix(c(bayes.ci[1], bayes.ci[2]), nrow = 1)
   bayes <- list(sus_scores = sus_scores, ci = ci[1,], replicates = ex.val, mean = mean(ex.val), type = 'bayes')
@@ -81,6 +84,8 @@ function(req) {
   ci.hw.increase <- 0
   b <- bootstrap(sus_scores, mean(sus_scores), R = N.bootstrap)  
   ci <- CI.bca(b, probs = c(0.025-ci.hw.increase, 0.975+ci.hw.increase), expand = TRUE)
+  ci
+  
   boot <- list(sus_scores = sus_scores, ci = ci[1,], replicates = b$replicates, mean = mean(sus_scores), type = 'boot')
   
   x=seq(0,100,by=0.05)

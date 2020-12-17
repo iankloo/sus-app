@@ -701,12 +701,13 @@ var freq = counts[0].map(function (x, i) {
   return [x, counts[1][i]] 
 });
 
-
-
+var freq_counts = counts[0].map(function (x, i) { 
+  return counts[1][i]
+});
 
 var rad_scale = d3.scaleLinear()
-  .domain([d3.min(freq[1]), d3.max(freq[1])])
-  .range([3, 65])
+  .domain([d3.min(freq_counts), d3.max(freq_counts)])
+  .range([3, 6])
 
 var circles = svg.selectAll('circle')
 .data(freq)
