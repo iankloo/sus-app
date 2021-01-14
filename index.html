@@ -1,6 +1,19 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
 
+<head>
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-HLSDDPSS38"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+  
+    gtag('config', 'G-HLSDDPSS38');
+  </script>
+</head>
+
+
 <script src="//cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
 
 
@@ -282,7 +295,7 @@ function hit_api(my_data){
 
       $("#export").click(function(){
           d3.selectAll('image').style('visibility', 'hidden')
-          saveSvgAsPng(d3.select("svg").node(), plot_name)
+          saveSvgAsPng(d3.select("svg").node(), plot_name, {scale: 10, backgroundColor: 'white'})
 
           setTimeout( function() {
             d3.selectAll('image').style('visibility', 'visible')
@@ -951,7 +964,7 @@ svg.append('svg:image')
 .attr('height', 12.5)
 .attr('data-toggle', 'tooltip')
 .attr('data-placement', 'right')
-.attr('title', 'A. Bangor, P. Kortum, and J. Miller. An empirical evaluation of the system usability scale. International Journal of Human-Computer Interaction, 24(6):592, 2008.')
+.attr('title', 'Acceptability Labels From: A. Bangor, P. Kortum, and J. Miller. An empirical evaluation of the system usability scale. International Journal of Human-Computer Interaction, 24(6):592, 2008.')
 
 //--letter grades
 svg.append('rect')
@@ -1058,7 +1071,7 @@ svg.append('svg:image')
 .attr('height', 12.5)
 .attr('data-toggle', 'tooltip')
 .attr('data-placement', 'right')
-.attr('title', 'J. Sauro and J. Lewis. Quantifying the user experience: Practical statistics for user research. Morgan Kaufmann, 2016. p. 204.')
+.attr('title', 'Letter Grades From: J. Sauro and J. Lewis. Quantifying the user experience: Practical statistics for user research. Morgan Kaufmann, 2016. p. 204.')
 
 
 //--awful to excellent bar
@@ -1262,7 +1275,7 @@ svg.append('svg:image')
 .attr('height', 12.5)
 .attr('data-toggle', 'tooltip')
 .attr('data-placement', 'right')
-.attr('title', 'J. Sauro and J. Lewis. Quantifying the user experience: Practical statistics for user research. Morgan Kaufmann, 2016. p. 203.')
+.attr('title', 'Score Percentilles From: J. Sauro and J. Lewis. Quantifying the user experience: Practical statistics for user research. Morgan Kaufmann, 2016. p. 203.')
 
 
 //--add frequency bar
